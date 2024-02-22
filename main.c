@@ -1,6 +1,22 @@
 #include <sys/types.h>
 #include <dirent.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stddef.h>
 
+char	*ft_strdup(char *str);
+
+int	ft_strlen(char *str)
+{
+	int	i;
+
+	i = -1;
+	while (str[++i])
+		;
+
+	return (i);
+}
 int	ft_strcmp(char *s1, char *s2)
 {
 	int	i;
@@ -49,14 +65,30 @@ char	**ft_swap(int ac, char **av)
 	return (av);
 }
 
+int	check_options(char *opt)
+{
+	int	i;
+
+	i = -1;
+	while (opt[++i])
+	{
+		if (opt[i] == '-' || opt[i] == 'l' || opt[i] == 'R' || opt[i] == 'a' || opt[i] == 'r' || opt[i] == 't')
+			i++;
+		else
+			return (1);
+	}
+	return (0);
+}
+
 int	main(int ac, char **av)
 {
 	if (ac == 1)
 	{
-		struct dirent *tab;
-		DIR *actu = opendir("/mnt/nfs/homes/jtaravel/Documents/");
-		char **store;
-		int size = 0;
+		struct dirent 	*tab;
+		DIR 		*actu = opendir("./");
+		char 		**store;
+		int 		size = 0;
+
 		tab = readdir(actu);
 		while (tab)
 		{
@@ -64,12 +96,12 @@ int	main(int ac, char **av)
 			tab = readdir(actu);
 		}
 		store = malloc(sizeof(char *) * size + 1);
-		actu = opendir("/mnt/nfs/homes/jtaravel/Documents/");
+		actu = opendir("./");
 		tab = readdir(actu);
 		int i = 0;
 		while (tab)
 		{
-			store[i] = tab->d_name;
+			store[i] = ft_strdup(tab->d_name);
 			i++;
 			tab = readdir(actu);
 		}
@@ -82,4 +114,50 @@ int	main(int ac, char **av)
 			i++;
 		}
 	}
+	else
+	{
+		int	i = 1;
+		int	c = 0;
+		int	k = 0;
+		int	j;
+		char	**toopen;
+
+		while (av[i])
+		{
+			if (opendir(av[i]))
+				c++;
+			else if (check_options(av[i]))
+			{
+				printf("Error\n");
+				return (1);
+			}
+			i++;
+		}
+		toopen = malloc(sizeof(char *) + c + 1);
+		i = 1;
+		j = 0;
+		while (av[i])
+		{
+			if (opendir(av[i]))
+			{
+				toopen[j] = ft_strdup(av[i]);
+				j++;
+			}
+			else
+				k++;
+			i++;
+		}
+		toopen[j] = 0;
+		j = 0;
+		while (toopen[j])
+		{
+			printf("%s\n", toopen[j]);
+			j++;
+		}
+
+
+
+		
+	}
+
 }

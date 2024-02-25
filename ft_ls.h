@@ -4,6 +4,15 @@
 
 #include <stdbool.h>
 
+typedef	struct s_recu
+{
+	char		*pwd;
+	char		*oldpwd;
+	char		**files;
+	char		**dirs;
+	struct s_recu	*next;
+}	t_recu;
+
 typedef struct s_files
 {
 	char	**toopen;

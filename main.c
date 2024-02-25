@@ -181,10 +181,10 @@ int	init_data(char **av, t_files *data)
 		}
 		i++;
 	}
-	toopen = malloc(sizeof(char *) + c + 1);
-	toread = malloc(sizeof(char *) + c + 1);
-	files = malloc(sizeof(char *) + f + 1);
-	options = malloc(sizeof(char *) + (i - c) + 1);
+	toopen = malloc(sizeof(char *) * (c + 1));
+	toread = malloc(sizeof(char *) * (c + 1));
+	files = malloc(sizeof(char *) * (f + 1));
+	options = malloc(sizeof(char *) * ((i - c) + 1));
 	i = 1;
 	j = 0;
 	f = 0;
@@ -204,6 +204,7 @@ int	init_data(char **av, t_files *data)
 		}
 		else
 		{
+			printf("%s\n", av[i] + 1);
 			options[n] = ft_strdup(av[i] + 1);
 			n++;
 		}
@@ -269,7 +270,7 @@ void	freetab(char **tab)
 	free(tab);
 }
 
-void	add_dir_file(t_files *data, char *dir, int mode)
+void	add_dir_file(t_files *data, char *dir, t_recu *recu, int mode)
 {
 	if (mode == 0)
 	{
@@ -290,8 +291,8 @@ void	add_dir_file(t_files *data, char *dir, int mode)
 				f++;
 			dirs = readdir(tmp);
 		}
-		newd = malloc(sizeof(char *) + tablen(data->toread + c) + 2);
-		newf = malloc(sizeof(char *) + tablen(data->files + f) + 2);
+		newd = malloc(sizeof(char *) * (tablen(data->toread + c) + 2));
+		newf = malloc(sizeof(char *) * (tablen(data->files + f) + 2));
 		int k = 0;
 		int n = 0;
 		tmp = opendir(dir);
@@ -312,44 +313,34 @@ void	add_dir_file(t_files *data, char *dir, int mode)
 		}
 		newd[k + 1] = 0;
 		newf[n + 1] = 0;
+		/*
 		freetab(data->toread);
 		data->toread = NULL;
 		data->toread = newd;
 		freetab(data->files);
 		data->files = NULL;
 		data->files = newf;
-	}
-	else
-	{
-		char	**new;
-		int	i = 0;
+		data->toread = ft_swap(k, data->toread);*/
 
-		new = malloc(sizeof(char *) + tablen(data->files) + 2);
-		while (data->files[i])
-		{
-			new[i] = ft_strdup(data->files[i]);
-			i++;
-		}
-		new[i] = dir;
-		new[i + 1] = 0;
-		freetab(data->files);
-		data->files = new;
+		//*recu = new_elem(newd, newf, dir, 
 	}
 }
 
 
 
-void	recursive(t_files *data)
+void	recursive(t_files *data, t_recu *recu)
 {
 	int	i = 0;
-	
+	t_recu	*tmp;
+
+	*tmp = *recu;	
+
 	while (data->toread[i])
 	{
 		printf("data = %s\n", data->toread[i]);
 		if (opendir(data->toread[i]))
-			add_dir_file(data, data->toread[i], 0);
-		//else if (is_a_file(data->toread[i]))
-		//	add_dir_file(data, data->toread[i], 1);
+			add_dir_file(data, data->toread[i], tmp, 0);
+		tmp = tmp->next;
 		i++;
 	}
 
@@ -358,19 +349,9 @@ void	recursive(t_files *data)
 void	optionR(t_files *data)
 {
 	int i = 0;
-	
-	recursive(data);
-	while (data->files[i])
-	{
-		ft_putstr(data->files[i]);
-		if (data->files[i + 1])
-			ft_putstr_fd("  ", 1);
-		i++;
-	}
-	ft_putchar_fd('\n', 1);
-	ft_putchar_fd('\n', 1);
+	t_recu	recu;
 
-
+	recursive(data, &recu);
 }
 
 int	exec_ls_args(char **av)

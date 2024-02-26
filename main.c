@@ -270,7 +270,7 @@ void	freetab(char **tab)
 	free(tab);
 }
 
-void	add_dir_file(t_files *data, char *dir, t_recu *recu, int mode)
+void	add_dir_file(t_files *data, char *dir, t_recu *recu, int mode, char *oldpwd)
 {
 	if (mode == 0)
 	{
@@ -285,14 +285,23 @@ void	add_dir_file(t_files *data, char *dir, t_recu *recu, int mode)
 		while (dirs)
 		{
 			printf("i = %s\n", dirs->d_name);
-			if (opendir(dirs->d_name))
+			if (opendir(dirs->d_name) && dirs->d_name[0] != '.')
 				c++;
 			else if (is_a_file(dirs->d_name))
 				f++;
 			dirs = readdir(tmp);
 		}
-		newd = malloc(sizeof(char *) * (tablen(data->toread + c) + 2));
-		newf = malloc(sizeof(char *) * (tablen(data->files + f) + 2));
+		recu->dirs = malloc(sizeof(char *) * (c + 2));
+		recu->files = malloc(sizeof(char *) * (f + 2));
+		freetab(data->toread);
+		//freetab(data->toopen);
+		freetab(data->files);
+		data->toopen = NULL;
+		data->toread = NULL;
+		data->files = NULL;
+		data->toread = malloc(sizeof(char *) * (c + 1));
+		data->toopen = malloc(sizeof(char *) * (c + 2));
+		data->files = malloc(sizeof(char *) * (f + 2));
 		int k = 0;
 		int n = 0;
 		tmp = opendir(dir);
@@ -301,26 +310,30 @@ void	add_dir_file(t_files *data, char *dir, t_recu *recu, int mode)
 		{
 			if (opendir(dirs->d_name) && dirs->d_name[0] != '.')
 			{
-				newd[k] = ft_strdup(dirs->d_name);
+				recu->dirs[k] = ft_strdup(dirs->d_name);
+				data->toopen[k] = ft_strdup(dirs->d_name);
+				data->toread[k] = ft_strdup(dirs->d_name);
+				printf("test = %s\n", data->toread[k]);
 				k++;
 			}
-			else if (dirs->d_name[0] != '.')
+			else
 			{
-				newf[n] = ft_strdup(dirs->d_name);
+				recu->files[n] = ft_strdup(dirs->d_name);
+				data->files[n] = ft_strdup(dirs->d_name);
 				n++;
 			}
 			dirs = readdir(tmp);
 		}
-		newd[k + 1] = 0;
-		newf[n + 1] = 0;
-		/*
-		freetab(data->toread);
-		data->toread = NULL;
-		data->toread = newd;
-		freetab(data->files);
-		data->files = NULL;
-		data->files = newf;
-		data->toread = ft_swap(k, data->toread);*/
+		recu->dirs[k + 1] = 0;
+		recu->files[n + 1] = 0;
+		recu->pwd = ft_strdup(dir);
+		recu->oldpwd = oldpwd;
+		recu->next = NULL;
+		//data->toopen[k] = 0;
+		data->toread[k] = 0;
+		data->files[n + 1] = 0;
+		data->toread = ft_swap(k, data->toread);
+		//data->toopen = ft_swap(k, data->toopen);
 
 		//*recu = new_elem(newd, newf, dir, 
 	}
@@ -332,6 +345,7 @@ void	recursive(t_files *data, t_recu *recu)
 {
 	int	i = 0;
 	t_recu	*tmp;
+	char	*oldpwd;
 
 	*tmp = *recu;	
 
@@ -339,7 +353,8 @@ void	recursive(t_files *data, t_recu *recu)
 	{
 		printf("data = %s\n", data->toread[i]);
 		if (opendir(data->toread[i]))
-			add_dir_file(data, data->toread[i], tmp, 0);
+			add_dir_file(data, data->toread[i], tmp, 0, oldpwd);
+		oldpwd = tmp->pwd;
 		tmp = tmp->next;
 		i++;
 	}

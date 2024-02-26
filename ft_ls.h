@@ -3,6 +3,15 @@
 #define FT_LS_H
 
 #include <stdbool.h>
+#include <sys/types.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stddef.h>
+#include <sys/ioctl.h>
 
 typedef	struct s_recu
 {
@@ -24,6 +33,10 @@ typedef struct s_files
 	bool	r;
 	bool	t;
 }	t_files;
+
+int	ft_strlen(char *str);
+char	*ft_strjoin(char *s1, char *s2);
+
 
 
 #endif

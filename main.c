@@ -9,57 +9,15 @@
 #include <stddef.h>
 #include "ft_ls.h"
 
-char	*ft_strdup(char *str);
-
-int	ft_strlen(char *str)
-{
-	int	i;
-
-	i = -1;
-	while (str[++i])
-		;
-
-	return (i);
-}
-int	ft_strcmp(char *s1, char *s2)
-{
-	int	i;
-
-	i = 0;
-	while (s1[i] != '\0' && s2[i] != '\0' && s1[i] == s2[i])
-		i++;
-	return (s1[i] - s2[i]);
-}
-
-void	ft_putstr(char *str)
-{
-	int	i;
-
-	i = 0;
-	while (str[i] != '\0')
-	{
-		write(1, &str[i], 1);
-		i++;
-	}
-}
-
-void	ft_putstr_fd(char *str, int fd)
-{
-	int	i;
-
-	i = 0;
-	while (str[i] != '\0')
-	{
-		write(fd, &str[i], 1);
-		i++;
-	}
-}
-
-char	**ft_swap(int ac, char **av)
+char	**sort_by_time(int ac, char **av)
 {
 	int		i;
 	int		j;
 	char	*swap;
+	struct	stat		st;
+	struct	stat		st2;
+	time_t	modif;
+	time_t	modif2;
 
 	i = 0;
 	while (i != ac)
@@ -67,7 +25,14 @@ char	**ft_swap(int ac, char **av)
 		j = 0;
 		while (j < ac)
 		{
-			if (ft_strcmp(av[i], av[j]) < 0)
+			if (stat(av[i], &st) != 0)
+				exit(1);
+			if (stat(av[j], &st2) != 0)
+				exit(1);
+			modif = st.st_mtime;
+			modif2 = st2.st_mtime;
+			//printf("m1 = %ld   m2 = %ld\n", (long)modif, (long)modif2);
+			if (modif < modif2)
 			{
 				swap = av[i];
 				av[i] = av[j];
@@ -80,11 +45,6 @@ char	**ft_swap(int ac, char **av)
 	return (av);
 }
 
-void	ft_putchar_fd(char c, int fd)
-{
-	write(fd, &c, 1);
-}
-
 int	check_options(char *opt)
 {
 	int	i;
@@ -92,7 +52,7 @@ int	check_options(char *opt)
 	i = -1;
 	while (opt[++i])
 	{
-		if (opt[i] == '-' || opt[i] == 'l' || opt[i] == 'R' || opt[i] == 'a' || opt[i] == 'r' || opt[i] == 't')
+		if (opt[i] == '-' || opt[i] == 'l' || opt[i] == 'R' || opt[i] == 'a' || opt[i] == 'r' || opt[i] == 't' || opt[i] == 'g')
 			;
 		else
 		{
@@ -103,22 +63,6 @@ int	check_options(char *opt)
 			return (1);
 		}
 	}
-	return (0);
-}
-
-int	is_a_file(char *str)
-{
-	DIR    *dir_ptr;
-
-	dir_ptr = opendir(str);
-	if (dir_ptr == NULL)
-	{
-		if (errno == ENOTDIR)
-			return (1);
-		return (0);
-	}
-	if (closedir(dir_ptr))
-		perror("closedir");
 	return (0);
 }
 
@@ -155,8 +99,6 @@ int	exec_ls_no_args(void)
 	}
 	return (0);
 }
-
-void	freetab(char **tab);
 
 int	init_data(char **av, t_files *data)
 {
@@ -210,7 +152,6 @@ int	init_data(char **av, t_files *data)
 		}
 		else
 		{
-			printf("%s\n", av[i] + 1);
 			options[n] = ft_strdup(av[i] + 1);
 			n++;
 		}
@@ -221,6 +162,23 @@ int	init_data(char **av, t_files *data)
 	files[f] = 0;
 	options[n] = 0;
 	toread[j] = 0;
+	if (tablen(toread) < 1)
+	{
+		freetab(toread);
+		freetab(files);
+		freetab(options);
+		char *tmp[n+j+f];
+		int u = 0;
+		while (av[u])
+		{
+			tmp[u] = av[u];
+			u++;
+		}
+		tmp[u] = "./";
+		tmp[u + 1] = 0;
+		init_data(tmp, data);
+		return (0);
+	}
 	//data->toopen = toopen;
 	//data->toopen = ft_swap(j, data->toopen);
 	data->toread = toread;
@@ -235,6 +193,7 @@ int	init_data(char **av, t_files *data)
 	data->l = false;
 	data->a = false;
 	data->t = false;
+	data->g = false;
 	while (options[n])
 	{
 		i = 0;
@@ -250,6 +209,8 @@ int	init_data(char **av, t_files *data)
 				data->a = true;
 			if (options[n][i] == 't')
 				data->t = true;
+			if (options[n][i] == 'g')
+				data->g = true;
 			i++;
 		}
 		n++;
@@ -258,51 +219,14 @@ int	init_data(char **av, t_files *data)
 	return (0);
 }
 
-int	tablen(char **tab)
-{
-	int	i = 0;
-
-	while (tab[i])
-		i++;
-	return (i);
-}
-
-void	freetab(char **tab)
-{
-	int	i = 0;
-
-	while (tab[i])
-	{
-		free(tab[i]);
-		i++;
-	}
-	free(tab);
-}
-
-char	**ft_strduptab(char **tab)
-{
-	int	i = 0;
-	char	**res;
-
-	res = malloc(sizeof(char *) * (tablen(tab) + 1));
-	if (!res)
-		return (NULL);
-	while (tab[i])
-	{
-		res[i] = ft_strdup(tab[i]);
-		i++;
-	}
-	res[i] = 0;
-	return (res);
-}
-
-void	add_maillon(t_recu **head_ref, char *new_data, char **all)
+void	add_maillon(t_recu **head_ref, char *new_data, char **all, char **paths)
 {	
 	t_recu	*new_node = malloc(sizeof(t_recu));
 	t_recu	*last = *head_ref;
 	
 	new_node->pwd = ft_strdup(new_data);
 	new_node->dirs = ft_strduptab(all);
+	new_node->paths = ft_strduptab(paths);
 	new_node->next = NULL;
 	if (*head_ref == NULL)
 	{
@@ -337,7 +261,7 @@ char	**add_dir_file(t_files *data, char *dir, t_recu **recu, int mode, char *old
 	int j = 0;
 	while ((dirs2 = readdir(tmp2)))
 	{
-		if (strcmp(dirs2->d_name, ".") != 0 && strcmp(dirs2->d_name, "..") != 0)
+		if (ft_strcmp(dirs2->d_name, ".") != 0 && ft_strcmp(dirs2->d_name, "..") != 0)
 		{
 			path = ft_strjoin(path, dir);
 			path = ft_strjoin(path, "/");
@@ -376,12 +300,12 @@ char	**add_dir_file(t_files *data, char *dir, t_recu **recu, int mode, char *old
 		u++;
 	}
 	printf("dir = %s\n", dir);*/
-	add_maillon(recu, dir, foradd);
+	add_maillon(recu, dir, foradd, all);
 	freetab(foradd);
 	i = 0;
 	while (all[i])
 	{
-		if (strcmp(all[i], ".") != 0 && strcmp(all[i], "..") != 0)
+		if (ft_strcmp(all[i], ".") != 0 && ft_strcmp(all[i], "..") != 0)
 		{
 			//char	*cpydir = ft_strdup(dir);
 			//path = ft_strjoin(cpydir, "/");
@@ -401,6 +325,7 @@ char	**add_dir_file(t_files *data, char *dir, t_recu **recu, int mode, char *old
 		i++;
 	}
 	freetab(all);
+	return (NULL);
 }
 
 
@@ -467,8 +392,10 @@ char	*fill_recu(t_files *data, t_recu **recu, char *dir)
 	{
 		//if (strcmp(dirs2->d_name, ".") != 0 && strcmp(dirs2->d_name, "..") != 0)
 		//{
+
 			path = ft_strjoin(path, dir);
-			path = ft_strjoin(path, "/");
+			if (path[ft_strlen(path)-1] != '/')
+				path = ft_strjoin(path, "/");
 			path = ft_strjoin(path, dirs2->d_name);
 			if (dirs2->d_name[0] == '.' && data->a == false)
 				;
@@ -495,22 +422,255 @@ char	*fill_recu(t_files *data, t_recu **recu, char *dir)
 		u++;
 	}
 	printf("dir = %s\n", dir);*/
-	add_maillon(recu, dir, foradd);
+	add_maillon(recu, dir, foradd, all);
 	freetab(foradd);
+	return (NULL);
 
+}
+
+void	fill_data_no_ars(t_files *data)
+{
+	struct dirent 	*tab;
+	DIR 		*actu = opendir("./");
+	char 		**store;
+	int 		size = 0;
+
+	tab = readdir(actu);
+	while (tab)
+	{
+		if (ft_strcmp(tab->d_name, ".") != 0 && ft_strcmp(tab->d_name, "..") != 0)
+		{
+			size++;
+		}
+		tab = readdir(actu);
+	}
+	data->toread = malloc(sizeof(char *) * size + 1);
+	actu = opendir("./");
+	tab = readdir(actu);
+	int i = 0;
+	while (tab)
+	{
+		if (ft_strcmp(tab->d_name, ".") != 0 && ft_strcmp(tab->d_name, "..") != 0)
+		{
+			data->toread[i] = ft_strdup(tab->d_name);
+			i++;
+		}
+		tab = readdir(actu);
+	}
+	data->toread = ft_swap(size, data->toread);
 }
 
 void	recup_args(t_files *data, t_recu **recu)
 {
 	int	i = 0;
 
+	/*if (tablen(data->toread) < 1)
+	{
+		freetab(data->toread);
+		fill_data_no_ars(data);
+	}*/
 	while (data->toread[i])
 	{
 		fill_recu(data, recu, data->toread[i]);
 		i++;
 	}
 }
+char	*ft_ltoa(long n);
 
+void	print_more_infos(t_files *data, char **recup, t_recu **recu)
+{
+	t_recu *lst = *recu;
+
+	while (lst)
+	{
+		ft_putstr(lst->pwd);
+		ft_putstr(":\n");
+
+	struct	stat	info;
+	int		u = 0;
+	int	sizeL = 0;
+	int	sizeU = 0;
+	int	sizeG = 0;
+	int	sizeS = 0;
+	int	sizeD = 0;
+	int	sizeH = 0;
+	int	sizeBloc = 0;
+	while (lst->paths[u])
+	{
+		if (stat(lst->paths[u], &info) != 0)
+			return ;
+		char *tmp = ft_ltoa((long)info.st_nlink);
+		if (sizeL < ft_strlen(tmp))
+			sizeL = ft_strlen(tmp);
+		free(tmp);
+
+		struct passwd *pw = getpwuid(info.st_uid);
+		struct group *gr = getgrgid(info.st_gid);
+		if (sizeU < ft_strlen(tmp))
+			sizeU = ft_strlen(pw ? pw->pw_name : "unknown");
+		if (sizeG < ft_strlen(tmp))
+			sizeG = ft_strlen(gr ? gr->gr_name : "unknown");
+
+		tmp = ft_ltoa((long)info.st_size);
+		if (sizeS < ft_strlen(tmp))
+			sizeS = ft_strlen(tmp);
+		free(tmp);
+
+		time_t	modif;
+		modif = info.st_mtime;
+		char *timeString = ctime(&modif);
+		char **timeSplit = ft_split(timeString, ' ');
+		time_t actu = time(NULL);
+		char	*date_actu = ctime(&actu);
+		int	annee = atoi(date_actu + 20);
+
+		if (annee == atoi(timeSplit[3]) && sizeH < 5)
+			sizeH = 5;
+		else
+			sizeH = 4;
+		if (ft_strlen(timeSplit[2]) > sizeD)
+			sizeD = ft_strlen(timeSplit[2]);
+		struct stat bloc;
+		stat(lst->paths[u], &bloc);
+		sizeBloc += (long)bloc.st_blocks;
+		u++;
+	}
+	char *str = ft_ltoa(sizeBloc / 2);
+	ft_putstr("total ");
+	ft_putstr(str);
+	ft_putstr("\n");
+
+	u = 0;
+	while (lst->paths[u])
+	{
+		if (stat(lst->paths[u], &info) != 0)
+			return ;
+
+		// Affichage des droits
+
+		ft_putstr((S_ISDIR(info.st_mode)) ? "d" : "-");
+		ft_putstr((info.st_mode & S_IRUSR) ? "r" : "-");
+		ft_putstr((info.st_mode & S_IWUSR) ? "w" : "-");
+		ft_putstr((info.st_mode & S_IXUSR) ? "x" : "-");
+		ft_putstr((info.st_mode & S_IRGRP) ? "r" : "-");
+		ft_putstr((info.st_mode & S_IWGRP) ? "w" : "-");
+		ft_putstr((info.st_mode & S_IXGRP) ? "x" : "-");
+		ft_putstr((info.st_mode & S_IROTH) ? "r" : "-");
+		ft_putstr((info.st_mode & S_IWOTH) ? "w" : "-");
+		ft_putstr((info.st_mode & S_IXOTH) ? "x" : "-");
+		
+
+		// Affichage du nombre de liens
+
+		char *tmp = ft_ltoa((long)info.st_nlink);
+		
+		int lenL = ft_strlen(tmp);
+		ft_putstr(" ");
+		lenL = sizeL - lenL;
+		while (lenL)
+		{
+			ft_putstr(" ");
+			lenL--;
+		}
+		ft_putstr(tmp);
+		free(tmp);
+
+		// Affichage user et groupe
+		
+		struct passwd *pw = getpwuid(info.st_uid);
+		struct group *gr = getgrgid(info.st_gid);
+		
+		int lenU = ft_strlen(pw->pw_name);
+		ft_putstr(" ");
+		lenU = sizeU - lenU;
+		while (lenU)
+		{
+			ft_putstr(" ");
+			lenU--;
+		}
+		ft_putstr(pw ? pw->pw_name : "unknown");
+		if (data->g == false)
+		{
+			int lenG = ft_strlen(gr->gr_name);
+			ft_putstr(" ");
+			lenG = sizeG - lenG;
+			while (lenG)
+			{
+				ft_putstr(" ");
+				lenG--;
+			}
+			ft_putstr(gr ? gr->gr_name : "unknown");
+		}
+
+
+		// Affichage de la taille
+
+		tmp = ft_ltoa((long)info.st_size);
+		int lenS = ft_strlen(tmp);
+		ft_putstr(" ");
+		lenS = sizeS - lenS;
+		while (lenS)
+		{
+			ft_putstr(" ");
+			lenS--;
+		}
+		ft_putstr(tmp);
+		free(tmp);
+
+		ft_putstr(" ");
+
+		time_t	modif;
+		modif = info.st_mtime;
+		char *timeString = ctime(&modif);
+		char **timeSplit = ft_split(timeString, ' ');
+		time_t actu = time(NULL);
+		char	*date_actu = ctime(&actu);
+		int	annee = atoi(date_actu + 20);
+		
+		ft_putstr(timeSplit[1]);
+		int lenD = ft_strlen(timeSplit[2]);
+		lenD = sizeD - lenD;
+		ft_putstr(" ");
+		while (lenD)
+		{
+			ft_putstr(" ");
+			lenD--;
+		}
+		ft_putstr(timeSplit[2]);
+		//printf("an = %d    ts = %d\n", atoi(timeSplit[4]), annee);
+		ft_putstr(" ");
+		if (annee ==  atoi(timeSplit[4]))
+		{
+			char **hours = ft_split(timeSplit[3], ':');
+			ft_putstr(hours[0]);
+			ft_putstr(":");
+			ft_putstr(hours[1]);
+			freetab(hours);
+		}
+		else
+		{
+			ft_putstr(" ");
+			char **del = ft_split(timeSplit[4], '\n');
+			ft_putstr(del[0]);
+			freetab(del);
+		}
+
+		ft_putstr(" ");
+		if (S_ISDIR(info.st_mode))
+			write(STDOUT_FILENO, COLOR_BLUE, ft_strlen(COLOR_BLUE));
+		else if (info.st_mode & S_IXUSR)
+			write(STDOUT_FILENO, COLOR_GREEN, ft_strlen(COLOR_BLUE));
+		ft_putstr(lst->dirs[u]);
+		write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
+		ft_putstr("\n");
+		u++;
+	}
+		lst = lst->next;
+		if (lst)
+			ft_putstr("\n");
+	}
+
+}
 void	print_list(t_files *data, t_recu **recu)
 {
 	struct	stat		test;
@@ -519,25 +679,52 @@ void	print_list(t_files *data, t_recu **recu)
 	time_t	modif;
 	char			buff[100];
 
-	stat(lst->dirs[0], &test);
-	modif = test.st_mtime;
-
-
-	char *timeString = ctime(&modif);
-	printf("%.3s %.*s %.2s:%.2s\n", timeString + 4, 2, timeString + 8, timeString + 11, timeString + 14);
-	while (lst)
+	if (data->R == false)
 	{
-		printf("%s\n", lst->pwd);
-		int i = 0;
-		while (lst->dirs[i])
+		t_recu *tmp = *recu;
+		int	c = 0;
+		while (tmp)
 		{
-			printf("%s ", lst->dirs[i]);
-			i++;
+			int i = 0;
+			while (lst->paths[i])
+			{
+				i++;
+				c++;
+			}
+			tmp = tmp->next;
 		}
-		printf("\n\n");
-		lst = lst->next;
-	}
+		char	**recup = malloc(sizeof(char *) * (c + 1));
+		tmp = *recu;
+		int j = 0;
+		while (tmp)
+		{
+			int i = 0;
+			while (tmp->paths[i])
+			{
+				recup[j] = tmp->paths[i];
+				i++;
+				j++;
+			}
+			tmp = tmp->next;
+		}
+		recup[j] = 0;
+		if (data->t == true)
+			recup = sort_by_time(j, recup);
+		if (data->r == true)
+			reverse_tab(recup, j);
+		if (data->l == true)
+			print_more_infos(data, recup, recu);
+		else
+		{
+			int u = 0;
+			while (recup[u])
+			{
+				printf("test = %s\n", recup[u]);
+				u++;
+			}
+		}
 
+	}
 }
 
 int	exec_ls_args(char **av)

@@ -50,10 +50,10 @@ char	*ft_ltoa(long n)
 		nb = nb / 10;
 	}
 	tab[i] = nb;
-	res = malloc(sizeof(char) * (i + 1));
+	res = malloc(sizeof(char) * (i + 2));
 	if (!res)
 		return (NULL);
-	res[i + 1] = '\0';
+	res[i] = '\0';
 	res = ft_fill(res, tab, i, n);
 	return (res);
 }

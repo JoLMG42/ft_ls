@@ -154,3 +154,59 @@ void	reverse_tab(char **tab, int len)
 		end--;
 	}
 }
+
+char	**sort_by_time(int ac, char **av)
+{
+	int		i;
+	int		j;
+	char	*swap;
+	struct	stat		st;
+	struct	stat		st2;
+	time_t	modif;
+	time_t	modif2;
+
+	i = 0;
+	while (i != ac)
+	{
+		j = 0;
+		while (j < ac)
+		{
+			if (stat(av[i], &st) != 0)
+				exit(1);
+			if (stat(av[j], &st2) != 0)
+				exit(1);
+			modif = st.st_mtime;
+			modif2 = st2.st_mtime;
+			if (modif > modif2)
+			{
+				swap = av[i];
+				av[i] = av[j];
+				av[j] = swap;
+			}
+			j++;
+		}
+		i++;
+	}
+	return (av);
+}
+
+int	check_options(char *opt)
+{
+	int	i;
+
+	i = -1;
+	while (opt[++i])
+	{
+		if (opt[i] == '-' || opt[i] == 'l' || opt[i] == 'R' || opt[i] == 'a' || opt[i] == 'r' || opt[i] == 't' || opt[i] == 'g')
+			;
+		else
+		{
+			ft_putstr_fd("ft_ls: invalid option -- '", 2);
+			ft_putchar_fd(opt[i], 2);
+			ft_putstr_fd("'\n", 2);
+			ft_putstr_fd("try 'ft_ls --help' for more information.\n", 2);
+			return (1);
+		}
+	}
+	return (0);
+}

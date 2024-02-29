@@ -35,12 +35,15 @@ int	exec_ls_no_args(void)
 	int i = 0;
 	while (tab)
 	{
-		store[i] = ft_strdup(tab->d_name);
-		i++;
+		if (tab->d_name[0] != '.')
+		{
+			store[i] = ft_strdup(tab->d_name);
+			i++;
+		}
 		tab = readdir(actu);
 	}
 	store[i] = 0;
-	store = ft_swap(size, store);
+	store = ft_swap(i, store);
 	one_line_print(store, store);
 	freetab(store);
 	closedir(actu);
@@ -52,6 +55,33 @@ int	exec_ls_no_args(void)
 	// 	i++;
 	// }
 	return (0);
+}
+
+void	ft_lstdelone(t_recu *lst, void (*del)(void *))
+{
+	if (!lst || !del)
+		return ;
+	free(lst->pwd);
+	freetab(lst->paths);
+	freetab(lst->dirs);
+	free(lst);
+}
+
+void	ft_lstclear(t_recu **lst, void (*del)(void *))
+{
+	t_recu	*list;
+	t_recu	*tmp;
+
+	if (!lst || !del)
+		return ;
+	list = *lst;
+	while (list)
+	{
+		tmp = list->next;
+		ft_lstdelone(list, del);
+		list = tmp;
+	}
+	*lst = NULL;
 }
 
 
@@ -133,6 +163,12 @@ char	**add_dir_file(t_files *data, char *dir, t_recu **recu, int mode, char *old
 	all = ft_swap(i, all);
 	foradd[j] = 0;
 	foradd = ft_swap(j, foradd);
+	
+	if (data->t)
+	{
+		all = sort_by_time(tablen(all), all, NULL, 0);
+		foradd = sort_by_time(tablen(foradd), foradd, dir, 1);
+	}
 	// int u = 0;
 	// while (all[u])
 	// {
@@ -166,29 +202,29 @@ void	recursive(t_files *data, t_recu **recu)
 	t_recu	*tmp;
 	char	*oldpwd = NULL;
 	
-	
+	if (data->t)
+		data->toread = sort_by_time(tablen(data->toread), data->toread, NULL, 0);
 	int k = 0;
 	while (data->toread[k])
 	{
-		printf("lol = %s\n", data->toread[k]);
 		add_dir_file(data, data->toread[k], recu, 0, oldpwd);
 		k++;
 	}
 
-	// t_recu *lst = *recu;
+	 /*t_recu *lst = *recu;
 
-	// while (lst)
-	// {
-	// 	printf("%s\n", lst->pwd);
-	// 	int i = 0;
-	// 	while (lst->dirs[i])
-	// 	{
-	// 		printf("%s ", lst->dirs[i]);
-	// 		i++;
-	// 	}
-	// 	printf("\n\n");
-	// 	lst = lst->next;
-	// }
+	 while (lst)
+	 {
+	 	printf("%s\n", lst->pwd);
+	 	int i = 0;
+	 	while (lst->dirs[i])
+	 	{
+	 		printf("%s ", lst->dirs[i]);
+	 		i++;
+	 	}
+	 	printf("\n\n");
+	 	lst = lst->next;
+	 }*/
 
 }
 
@@ -245,8 +281,19 @@ char	*fill_recu(t_files *data, t_recu **recu, char *dir)
 	foradd[i] = 0;
 	foradd = ft_swap(i, foradd);
 	int u = 0;
+	if (data->t == true)
+	{
+		all = sort_by_time(tablen(all), all, dir, 0);
+		foradd = sort_by_time(tablen(foradd), foradd, dir, 1);
+	}
+	if (data->r == true)
+	{
+		all = reverse_tab(all, tablen(all));
+		foradd = reverse_tab(foradd, tablen(foradd));
+	}
 	add_maillon(recu, dir, foradd, all);
 	freetab(foradd);
+	freetab(all);
 	return (NULL);
 
 }
@@ -278,15 +325,13 @@ char	*ft_ltoa(long n);
 void	print_more_infos(t_files *data, char **recup, t_recu **recu)
 {
 	t_recu *lst = *recu;
-
+	
+	int flag = 0;
+	if (lst->next)
+		flag = 1;
 	while (lst)
 	{
-		if (data->t == true)
-		{
-			lst->dirs = sort_by_time(tablen(lst->dirs), lst->dirs);
-			lst->paths = sort_by_time(tablen(lst->paths), lst->paths);
-		}
-		if (!is_a_file(lst->pwd))
+		if (!is_a_file(lst->pwd) && flag == 1)
 		{
 			ft_putstr(lst->pwd);
 			ft_putstr(":\n");
@@ -342,6 +387,7 @@ void	print_more_infos(t_files *data, char **recup, t_recu **recu)
 		stat(lst->paths[u], &bloc);
 		sizeBloc += (long)bloc.st_blocks;
 		u++;
+		freetab(timeSplit);
 	}
 	if (!is_a_file(lst->pwd))
 	{
@@ -349,6 +395,7 @@ void	print_more_infos(t_files *data, char **recup, t_recu **recu)
 		ft_putstr("total ");
 		ft_putstr(str);
 		ft_putstr("\n");
+		free(str);
 	}
 
 
@@ -482,16 +529,21 @@ void	print_more_infos(t_files *data, char **recup, t_recu **recu)
 			write(STDOUT_FILENO, COLOR_RED, ft_strlen(COLOR_RED));
 		else if (info.st_mode & S_IXUSR)
 			write(STDOUT_FILENO, COLOR_GREEN, ft_strlen(COLOR_GREEN));
-		ft_putstr(lst->dirs[u]);
-		write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
+		if (ft_strlen(lst->pwd) < ft_strlen(lst->paths[u]))
+			ft_putstr(lst->paths[u] + ft_strlen(lst->pwd));
+		else
+			ft_putstr(lst->paths[u]);
 		if (S_ISLNK(info.st_mode))
 		{
+			write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
 			ft_putstr(" -> ");
 			write(STDOUT_FILENO, COLOR_RED, ft_strlen(COLOR_RED));
 			ft_putstr(symL);
 		}
+		write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
 		ft_putstr("\n");
 		u++;
+		freetab(timeSplit);
 	}
 		lst = lst->next;
 		if (lst)
@@ -522,6 +574,45 @@ int	len_all_tab(char **tab)
 	}
 	return (ret);
 }
+
+void	big_print(char ***dirs, char *pwd, t_files *data)
+{
+	int	i = 0;
+	
+	while (dirs[i])
+	{
+		int j = 0;
+		while (dirs[i][j])
+		{
+			struct	stat	info;
+			//printf("pwd = %s      dir = %s\n", pwd, dirs[i][j]);
+			char *tmp = ft_strjoin(ft_strdup(pwd), "/");
+			tmp = ft_strjoin(tmp, dirs[i][j]);
+			if (lstat(tmp, &info))
+				return ;
+			if (S_ISDIR(info.st_mode))
+				write(STDOUT_FILENO, COLOR_BLUE, ft_strlen(COLOR_BLUE));
+			else if (S_ISLNK(info.st_mode))
+				write(STDOUT_FILENO, COLOR_RED, ft_strlen(COLOR_RED));
+			else if (info.st_mode & S_IXUSR)
+				write(STDOUT_FILENO, COLOR_GREEN, ft_strlen(COLOR_GREEN));
+			ft_putstr(dirs[i][j]);
+			write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
+			// if (S_ISLNK(info.st_mode))
+			// {
+			// 	ft_putstr(" -> ");
+			// 	write(STDOUT_FILENO, COLOR_RED, ft_strlen(COLOR_RED));
+			// 	ft_putstr(symL);
+			// }
+			j++;
+			ft_putstr("  ");
+		}
+		i++;
+	}
+
+}
+
+char	***recup_nb_col(t_files *data, char **toprint, t_recu **recu);
 
 void	one_line_print(char **d, char **tab)
 {
@@ -554,168 +645,143 @@ void	one_line_print(char **d, char **tab)
 	ft_putstr("\n");
 }
 
+void	print_in_col(t_files *data, char **recup, t_recu **recu)
+{
+	t_recu	*lst = *recu;
+
+	while (lst)
+	{
+		ft_putstr(lst->pwd);
+		ft_putstr(":\n");
+		char	***newdirs = recup_nb_col(data, lst->dirs, recu);
+		big_print(newdirs, lst->pwd,  data);
+		ft_putstr("\n");
+		ft_putstr("\n");
+
+		lst = lst->next;
+	}
+
+}
+
+char	***recup_nb_col(t_files *data, char **toprint, t_recu **recu)
+{
+	int	line = 1;
+	char	***ret = malloc(sizeof(char **) * (line + 1));
+	int	maxRowSize = len_all_tab(toprint) + (tablen(toprint) - 1) * 2;
+	int	colterm = 80;
+	struct winsize size;
+	if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &size) == -1)
+	{
+		perror("Error: ioctl\n");
+		return NULL;
+	}
+	else
+		colterm = size.ws_col;
+
+	if (maxRowSize + 1 > colterm)
+	{
+		while (maxRowSize + 1 > colterm)
+		{
+			ret = malloc(sizeof(char **) * (line + 1));
+			int k = 0;
+			for (k = 0; k < line; ++k)
+			{
+				ret[k] = malloc(sizeof(char *) * ((tablen(toprint) / line) + (tablen(toprint) % line > k) + 1));
+			}
+			ret[k] = 0;
+			int i = 0;
+			while (toprint[i])
+			{
+				ret[i % line][i / line] = ft_strdup(toprint[i]);
+				ret[i % line][i / line + 1] = 0;
+				i++;
+			}
+			i = 0;
+			int newMaxRowSize = 0;
+			while (ret[i])
+			{
+				if (newMaxRowSize < len_all_tab(ret[i]) + (tablen(ret[i]) - 1) * 2) 
+					newMaxRowSize = len_all_tab(ret[i]) + (tablen(ret[i]) - 1) * 2;
+				i++;
+				maxRowSize = newMaxRowSize;
+			}
+			line++;
+		}
+	}
+	else
+	{
+		ret = malloc(sizeof(char **) * (line + 1));
+		int k = 0;
+		for (k = 0; k < line; ++k)
+		{
+			ret[k] = malloc(sizeof(char *) * ((tablen(toprint) / line) + (tablen(toprint) % line > k) + 1));
+		}
+		ret[k] = 0;
+		int i = 0;
+		while (toprint[i])
+		{
+			ret[i % line][i / line] = ft_strdup(toprint[i]);
+			ret[i % line][i / line + 1] = 0;
+			i++;
+		}
+	}
+	return (ret);
+}
+
 void	print_list(t_files *data, t_recu **recu)
 {
-	struct	stat		test;
-	struct	timespec	ts;
-	t_recu *lst = *recu;
-	time_t	modif;
-	char			buff[100];
+	t_recu	*lst = *recu;
 
-	//if (data->R == false)
-	//{
-		t_recu *tmp = *recu;
-		int	c = 0;
-		while (tmp)
+	/*if (data->t == true)
+	{
+		while (lst)
 		{
-			int i = 0;
-			while (lst->paths[i])
-			{
-				i++;
-				c++;
-			}
-			tmp = tmp->next;
+			lst->paths = sort_by_time(tablen(lst->paths), lst->paths, lst->pwd, 0);
+			lst->dirs = sort_by_time(tablen(lst->dirs), lst->dirs, lst->pwd, 1);
+			lst = lst->next;
 		}
-		char	**recup = malloc(sizeof(char *) * (c + 5));
-		char	**toprint = malloc(sizeof(char *) * (c + 5));
-		tmp = *recu;
-		int j = 0;
-		while (tmp)
+	}*/
+	/*lst = *recu;
+	if (data->r == true)
+	{
+		while (lst)
 		{
-			int i = 0;
-			while (tmp->paths[i])
-			{
-				recup[j] = tmp->paths[i];
-				toprint[j] = tmp->dirs[i];
-				i++;
-				j++;
-			}
-			tmp = tmp->next;
+			lst->paths = reverse_tab(lst->paths, tablen(lst->paths));
+			lst->dirs = reverse_tab(lst->dirs, tablen(lst->dirs));
+			lst = lst->next;
 		}
-		recup[j] = 0;
-		toprint[j] = 0;
-		if (data->t == true)
+	}*/
+	lst = *recu;
+	if (data->l == true)
+		print_more_infos(data, lst->paths, recu);
+	else if (data->R == true)
+		print_in_col(data, lst->paths, recu);
+	else
+	{
+		lst = *recu;
+		int flag = 0;
+		if (lst->next)
+			flag = 1;
+		while (lst)
 		{
-			recup = sort_by_time(j, recup);
-			toprint = sort_by_time(j, toprint);
+			if (flag)
+			{
+				ft_putstr(lst->pwd);
+				ft_putstr(":\n");
+			}
+			char ***newdirs = recup_nb_col(data, lst->dirs, recu);
+			big_print(newdirs, lst->pwd, data);
+			ft_putstr("\n\n");
+			lst = lst->next;
+
 		}
-		if (data->r == true)
-			reverse_tab(recup, j);
-		if (data->l == true)
-			print_more_infos(data, recup, recu);
-		else
-		{
-			int col = 80;
-			struct winsize size;
-			if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &size) == -1)
-			{
-				perror("Error: ioctl\n");
-				return ;
-			}
-			else
-				col = size.ws_col;
+	}
+}
 
-			int	lenAll = len_all_tab(toprint);
-			if (col > lenAll)
-			{
-				one_line_print(recup, toprint);
-				return ;
-			}
-
-			printf("col = %d\n", col);
-
-			int	nbfiles = (int)round(tablen(toprint) / 3 + 0.5);
-
-			char	**col1 = malloc(sizeof(char *) * (nbfiles + 1));
-			char	**col2 = malloc(sizeof(char *) * (nbfiles + 1));
-			char	**col3 = malloc(sizeof(char *) * (nbfiles + 1));
-
-			int	count = 0;
-			int a = 0;
-			while (count < nbfiles)
-			{
-				if (!toprint[count])
-					break; 
-				col1[a] = ft_strdup(toprint[count]);
-				count++;
-				a++;
-				if (!toprint[count])
-					break; 
-			}
-			col1[a] = 0;
-
-			int b = 0;
-			while (count < nbfiles * 2)
-			{
-				col2[b] = ft_strdup(toprint[count]);
-				count++;
-				b++;
-			}
-			col2[b] = 0;
-
-			int c = 0;
-			while (count < nbfiles * 3)
-			{
-				if (!toprint[count])
-					break;
-
-				col3[c] = ft_strdup(toprint[count]);
-				count++;
-				c++;
-				if (!toprint[count])
-					break;
-			}
-			col3[c] = 0;
-
-			int g = 0;
-			while (col1[g])
-			{
-				if (col1[g])
-				{
-					ft_putstr(col1[g]);
-					int max = trouver_longueur_max(col1, tablen(col1));
-					int l = ft_strlen(col1[g]);
-					while (l <= max)
-					{
-						ft_putstr(" ");
-						l++;
-					}
-				}
-				if (col2[g])
-				{
-					ft_putstr(col2[g]);
-					int max = trouver_longueur_max(col2, tablen(col2));
-					int l = ft_strlen(col2[g]);
-					while (l <= max)
-					{
-						ft_putstr(" ");
-						l++;
-					}
-				}
-				if (col3[g])
-				{
-					ft_putstr(col3[g]);
-					int max = trouver_longueur_max(col3, tablen(col3));
-					int l = ft_strlen(col3[g]);
-					while (l <= max)
-					{
-						ft_putstr(" ");
-						l++;
-					}
-				}
-				ft_putstr("\n");
-				g++;
-			}
-			freetab(col1);
-			freetab(col2);
-			freetab(col3);
-
-			// printf("lenall = %d\n", lenAll);
-			// printf("col term = %d\n", col);
-			// printf("cols = %d\n", nb_col);
-		}
-
-	//}
+void	free_all(t_files *data, t_recu **recu)
+{
+	ft_lstclear(recu, free);
+	freetab(data->toread);
 }
 
 int	exec_ls_args(char **av)
@@ -731,7 +797,7 @@ int	exec_ls_args(char **av)
 		recup_args(&data, &recu);
 
 	print_list(&data, &recu);
-	freetab(data.toread);
+	free_all(&data, &recu);
 	return (0);
 }
 

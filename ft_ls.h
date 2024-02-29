@@ -25,8 +25,6 @@
 typedef	struct s_recu
 {
 	char		*pwd;
-	char		*oldpwd;
-	char		**files;
 	char		**paths;
 	char		**dirs;
 	struct s_recu	*next;
@@ -34,9 +32,7 @@ typedef	struct s_recu
 
 typedef struct s_files
 {
-	char	**toopen;
 	char	**toread;
-	char	**files;
 	bool	l;
 	bool	a;
 	bool	R;
@@ -57,9 +53,9 @@ int		is_a_file(char *str);
 int		tablen(char **tab);
 void	freetab(char **tab);
 char	**ft_strduptab(char **tab);
-void	reverse_tab(char **tab, int len);
+char	**reverse_tab(char **tab, int len);
 char	*ft_strdup(char *str);
-char	**sort_by_time(int ac, char **av);
+char	**sort_by_time(int ac, char **av, char *pwd, int mode);
 int		check_options(char *opt);
 int		init_data(char **av, t_files *data);
 

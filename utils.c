@@ -6,7 +6,7 @@
 /*   By: jtaravel <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/27 19:35:54 by jtaravel          #+#    #+#             */
-/*   Updated: 2024/02/27 19:36:54 by jtaravel         ###   ########.fr       */
+/*   Updated: 2024/02/29 19:50:31 by jtaravel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,7 +140,7 @@ char	**ft_strduptab(char **tab)
 	return (res);
 }
 
-void	reverse_tab(char **tab, int len)
+char	**reverse_tab(char **tab, int len)
 {
 	int	start = 0;
 	int	end = len - 1;
@@ -153,9 +153,10 @@ void	reverse_tab(char **tab, int len)
 		start++;
 		end--;
 	}
+	return (tab);
 }
 
-char	**sort_by_time(int ac, char **av)
+char	**sort_by_time(int ac, char **av, char *pwd, int mode)
 {
 	int		i;
 	int		j;
@@ -171,10 +172,26 @@ char	**sort_by_time(int ac, char **av)
 		j = 0;
 		while (j < ac)
 		{
-			if (stat(av[i], &st) != 0)
-				exit(1);
-			if (stat(av[j], &st2) != 0)
-				exit(1);
+			if (mode == 1)
+			{
+				char *tmp1 = ft_strjoin(ft_strdup(pwd), "/");
+				tmp1 = ft_strjoin(tmp1, av[i]);
+				char *tmp2 = ft_strjoin(ft_strdup(pwd), "/");
+				tmp2 = ft_strjoin(tmp2, av[j]);
+				if (stat(tmp1, &st) != 0)
+					exit(4);
+				if (stat(tmp2, &st2) != 0)
+					exit(3);
+				free(tmp1);	
+				free(tmp2);	
+			}
+			else
+			{
+				if (stat(av[i], &st) != 0)
+					exit(2);
+				if (stat(av[j], &st2) != 0)
+					exit(1);
+			}
 			modif = st.st_mtime;
 			modif2 = st2.st_mtime;
 			if (modif > modif2)

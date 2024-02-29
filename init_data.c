@@ -12,7 +12,7 @@ int	init_data(char **argv, t_files *data)
 	char	**toread;
 	char	**options;
 	struct	stat	*tmp;
-    char    **av = ft_strduptab(argv);
+    	char    **av = ft_strduptab(argv);
 
 	while (av[i])
 	{
@@ -41,8 +41,9 @@ int	init_data(char **argv, t_files *data)
 		}
 		tmp[l] = ft_strdup("./");
 		tmp[l + 1] = ft_strdup(0);
-        free(av);
+        freetab(av);
         av = ft_strduptab(tmp);
+	freetab(tmp);
 
     }
 	toread = malloc(sizeof(char *) * (c + 10));
@@ -110,5 +111,6 @@ int	init_data(char **argv, t_files *data)
 		n++;
 	}
 	freetab(options);
+	freetab(av);
 	return (0);
 }

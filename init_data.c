@@ -21,10 +21,15 @@ int	init_data(char **argv, t_files *data)
 			c++;
 		else if (is_a_file(av[i]))
 			c++;
-		else if (!check_options(av[i]))
-            o++;
-        else
-			return (1);
+		else if (av[i][0] == '-' && !check_options(av[i]))
+            		o++;
+        	else
+		{
+			ft_putstr("ft_ls: cannot access '");
+			ft_putstr(av[i]);
+			ft_putstr("'");
+			ft_putstr(": No such file or directory\n");
+		}
 		closedir(tmp);
 		i++;
 	}

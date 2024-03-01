@@ -22,6 +22,12 @@
 #define COLOR_GREEN	"\x1b[32m"
 #define COLOR_RED	"\x1b[31m"
 
+typedef	struct s_col
+{
+	int		pading;
+	struct s_col	*next;
+}	t_col;
+
 typedef	struct s_recu
 {
 	char		*pwd;
@@ -33,6 +39,7 @@ typedef	struct s_recu
 typedef struct s_files
 {
 	char	**toread;
+	int	*padding;
 	bool	l;
 	bool	a;
 	bool	R;

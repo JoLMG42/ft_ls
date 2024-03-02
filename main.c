@@ -575,15 +575,13 @@ int	len_all_tab(char **tab)
 	return (ret);
 }
 
-void	big_print(char ***dirs, char *pwd, t_files *data)
+void	big_print(char ***dirs, char *pwd, t_files *data, t_recu *lst)
 {
 	int	i = 0;
 	int	pad = 0;
 	
 	while (dirs[i])
 	{
-			if (data->padding)
-				pad = data->padding[i];
 		int j = 0;
 		while (dirs[i][j])
 		{
@@ -607,27 +605,28 @@ void	big_print(char ***dirs, char *pwd, t_files *data)
 			// 	write(STDOUT_FILENO, COLOR_RED, ft_strlen(COLOR_RED));
 			// 	ft_putstr(symL);
 			// }
-			if (data->padding)
+			if (lst->padding)
 			{
-				int space = pad - ft_strlen(dirs[i][j]);
-				//printf("str = %s\n", dirs[i][j]);
-				while (space > 0)
+				int space = lst->padding[j] - ft_strlen(dirs[i][j]) - 2;
+				//printf("pad = %d\n", lst->padding[j]);
+				while (space > 0 && space < 1000)
 				{
-					//ft_putchar_fd(' ', 1);
+					ft_putchar_fd(' ', 1);
 					space--;
 				}
 
 			}
 			j++;
-			ft_putstr("  \n");
+			ft_putstr("  ");
 		}
-			ft_putstr("  \n");
 		i++;
+		if (dirs[i])
+			ft_putchar_fd('\n', 1);
 	}
 
 }
 
-char	***recup_nb_col(t_files *data, char **toprint, t_recu **recu);
+char	***recup_nb_col(t_files *data, char **toprint, t_recu **recu, t_recu *lst);
 
 void	one_line_print(char **d, char **tab)
 {
@@ -668,8 +667,8 @@ void	print_in_col(t_files *data, char **recup, t_recu **recu)
 	{
 		ft_putstr(lst->pwd);
 		ft_putstr(":\n");
-		char	***newdirs = recup_nb_col(data, lst->dirs, recu);
-		big_print(newdirs, lst->pwd,  data);
+		char	***newdirs = recup_nb_col(data, lst->dirs, recu, lst);
+		big_print(newdirs, lst->pwd,  data, lst);
 		ft_putstr("\n");
 		ft_putstr("\n");
 
@@ -678,10 +677,10 @@ void	print_in_col(t_files *data, char **recup, t_recu **recu)
 
 }
 
-char	***recup_nb_col(t_files *data, char **toprint, t_recu **recu)
+char	***recup_nb_col(t_files *data, char **toprint, t_recu **recu, t_recu *lst)
 {
 	int	line = 1;
-	char	***ret = malloc(sizeof(char **) * (line + 1));
+	char	***ret;// = malloc(sizeof(char **) * (line + 1));
 	int	maxRowSize = len_all_tab(toprint) + (tablen(toprint) - 1) * 2;
 	int	colterm = 80;
 	struct winsize size;
@@ -732,7 +731,7 @@ char	***recup_nb_col(t_files *data, char **toprint, t_recu **recu)
 			int newMaxRowSize = 0;
 	int u = 0;
 	int	allpad = 0;
-	while (u <= tablen(toprint) / line)
+	while (u < tablen(toprint) / line)
 	{
 			/*printf("ooo = %d\n", padding[u]);
 			int y = 0;
@@ -785,16 +784,7 @@ char	***recup_nb_col(t_files *data, char **toprint, t_recu **recu)
 		}
 		data->padding = NULL;
 	}
-	/*if (data->padding)
-	{
-		int u = 0;
-		while (u <= tablen(toprint) / line)
-		{
-			printf("pad = %d\n", padding[u]);
-			u++;
-		}
-			printf("dddd = %d\n", data->padding[u]);
-	}*/
+	lst->padding = data->padding;
 	return (ret);
 }
 
@@ -839,8 +829,8 @@ void	print_list(t_files *data, t_recu **recu)
 				ft_putstr(lst->pwd);
 				ft_putstr(":\n");
 			}
-			char ***newdirs = recup_nb_col(data, lst->dirs, recu);
-			big_print(newdirs, lst->pwd, data);
+			char ***newdirs = recup_nb_col(data, lst->dirs, recu, lst);
+			big_print(newdirs, lst->pwd, data, lst);
 			ft_putstr("\n\n");
 			lst = lst->next;
 

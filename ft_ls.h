@@ -33,6 +33,7 @@ typedef	struct s_recu
 	char		*pwd;
 	char		**paths;
 	char		**dirs;
+	int		*padding;
 	struct s_recu	*next;
 }	t_recu;
 

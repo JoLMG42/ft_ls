@@ -14,7 +14,8 @@
 #include <sys/ioctl.h>
 #include <pwd.h>
 #include <grp.h>
-#include<math.h>
+#include <time.h>
+#include <math.h>
 
 
 #define COLOR_BLUE	"\x1b[34m"
@@ -66,5 +67,21 @@ char	*ft_strdup(char *str);
 char	**sort_by_time(int ac, char **av, char *pwd, int mode);
 int		check_options(char *opt);
 int		init_data(char **av, t_files *data);
+void	ft_lstdelone(t_recu *lst, void (*del)(void *));
+void	ft_lstclear(t_recu **lst, void (*del)(void *));
+void	freetab(char **tab);
+void	free_all(t_files *data, t_recu **recu);
+int	exec_ls_no_args(void);
+void	one_line_print(char **d, char **tab);
+void	print_more_infos(t_files *data, char **recup, t_recu **recu);
+char	***recup_nb_col(t_files *data, char **toprint, t_recu **recu, t_recu *lst);
+int	len_all_tab(char **tab);
+void	big_print(char ***dirs, char *pwd, t_files *data, t_recu *lst);
+void	print_in_col(t_files *data, char **recup, t_recu **recu);
+void	print_list(t_files *data, t_recu **recu);
+char	*ft_ltoa(long nb);
+void	add_maillon(t_recu **head_ref, char *new_data, char **all, char **paths);
+void	optionR(t_files *data, t_recu **recu);
+void	recup_args(t_files *data, t_recu **recu);
 
 #endif

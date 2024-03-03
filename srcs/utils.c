@@ -111,18 +111,6 @@ int	tablen(char **tab)
 	return (i);
 }
 
-void	freetab(char **tab)
-{
-	int	i = 0;
-
-	while (tab[i])
-	{
-		free(tab[i]);
-		i++;
-	}
-	free(tab);
-}
-
 char	**ft_strduptab(char **tab)
 {
 	int	i = 0;
@@ -226,4 +214,35 @@ int	check_options(char *opt)
 		}
 	}
 	return (0);
+}
+
+int	len_all_tab(char **tab)
+{
+	int	i = 0;
+	int	ret = 0;
+	while (tab[i])
+	{
+		ret += ft_strlen(tab[i]);
+		i++;
+	}
+	return (ret);
+}
+
+void	add_maillon(t_recu **head_ref, char *new_data, char **all, char **paths)
+{	
+	t_recu	*new_node = malloc(sizeof(t_recu));
+	t_recu	*last = *head_ref;
+	
+	new_node->pwd = ft_strdup(new_data);
+	new_node->dirs = ft_strduptab(all);
+	new_node->paths = ft_strduptab(paths);
+	new_node->next = NULL;
+	if (*head_ref == NULL)
+	{
+		*head_ref = new_node;
+        	return;
+	}
+	while (last->next != NULL)
+		last = last->next;
+	last->next = new_node;
 }

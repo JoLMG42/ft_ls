@@ -1,8 +1,6 @@
 NAME	=	ft_ls
 
-SRCS_FILES	=	../main.cpp exec_ls_no_args.c  free.c  ft_ltoa.c  ft_split.c  ft_strdup.c  \
-				ft_strjoin.c  init_data.c  main.c  optionL.c  optionR.c  prints.c  recup_nb_col.c  \
-				storage.c  utils.c
+SRCS_FILES	=	../main.c exec_ls_no_args.c free.c ft_ltoa.c ft_split.c ft_strdup.c ft_strjoin.c init_data.c optionL.c optionR.c prints.c recup_nb_col.c storage.c utils.c
 
 INC_FILES	=	ft_ls.h
 
@@ -14,13 +12,9 @@ CC	=	cc
 
 FLAGS	=	-Wall -Wextra -Werror -I./includes -g3
 
-OBJS_FILES	=	$(SRCS_FILES:%.cpp=%.o)
-BOBJS_FILES	=	$(SRCS_FILES:%.cpp=%.o)
-TOBJS_FILES	=	$(SRCS_FILES:%.cpp=%.o)
+OBJS_FILES	=	$(SRCS_FILES:%.c=%.o)
 
 OBJS	=	$(addprefix objs/, $(OBJS_FILES))
-BOBJS	=	$(addprefix bobjs/, $(BOBJS_FILES))
-TOBJS	=	$(addprefix tobjs/, $(TOBJS_FILES))
 
 DEP		=	$(OBJS:%.o=%.d)
 
@@ -31,8 +25,6 @@ $(NAME)	:	$(OBJS)
 
 clean	:
 	rm -rf $(OBJS) $(DEP)
-	rm -rf $(BOBJS)
-	rm -rf $(TOBJS)
 	rm -rf objs/
 	rm -rf main.d
 
@@ -41,7 +33,7 @@ fclean	:	clean
 
 re	:	fclean all
 
-./objs/%.o :	./srcs/%.cpp $(INCS)
+./objs/%.o :	./srcs/%.c $(INCS)
 		mkdir -p objs
 		$(CC) $(FLAGS) -MMD -I ./includes/ -o $@ -c $<
 

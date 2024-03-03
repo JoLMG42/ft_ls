@@ -15,7 +15,11 @@ int	exec_ls_no_args(void)
 	}
 	store = malloc(sizeof(char *) * size + 50);
 	if (!store)
+	{
+		closedir(actu);
+		ft_putstr_fd("Error malloc in exec_ls_no_args\n", 2);
 		return 0;
+	}
 	closedir(actu);
 	actu = opendir("./");
 	tab = readdir(actu);
@@ -46,14 +50,7 @@ void	one_line_print(char **d, char **tab)
 	{
 		if (lstat(d[i], &info))
 			return ;
-		if (S_ISDIR(info.st_mode))
-			write(STDOUT_FILENO, COLOR_BLUE, ft_strlen(COLOR_BLUE));
-		else if (S_ISLNK(info.st_mode))
-			write(STDOUT_FILENO, COLOR_RED, ft_strlen(COLOR_RED));
-		else if (info.st_mode & S_IXUSR)
-			write(STDOUT_FILENO, COLOR_GREEN, ft_strlen(COLOR_GREEN));
 		ft_putstr(tab[i]);
-		write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
 		i++;
 		if (tab[i])
 			ft_putstr("  ");

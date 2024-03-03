@@ -1,13 +1,15 @@
 #include "ft_ls.h"
 
-char	***recup_nb_col(t_files *data, char **toprint, t_recu **recu, t_recu *lst)
+char	***recup_nb_col(t_files *data, char **toprint, t_recu *lst)
 {
 	int	line = 1;
-	char	***ret;// = malloc(sizeof(char **) * (line + 1));
+	char	***ret = NULL;
 	int	maxRowSize = len_all_tab(toprint) + (tablen(toprint) - 1) * 2;
 	int	colterm = 80;
 	struct winsize size;
-	int	*padding;
+	int	*padding = NULL;
+	if (tablen(toprint) == 0)
+		line = 0;
 	if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &size) == -1)
 	{
 		perror("Error: ioctl\n");
@@ -20,18 +22,27 @@ char	***recup_nb_col(t_files *data, char **toprint, t_recu **recu, t_recu *lst)
 	{
 		while (maxRowSize + 3 > colterm)
 		{
-			padding = malloc(sizeof(int) * (int)(tablen(toprint) / line));
+			if (padding)
+				free(padding);
+			padding = malloc(sizeof(int) * (int)(tablen(toprint) / line+5));
+			if (!padding)
+				return (NULL);
 			int k = 0;
-			while (k < tablen(toprint) / line)
+			while (k < tablen(toprint) / line+5)
 			{
 				padding[k] = 0;
 				k++;
 			}
-			
+			if (ret)
+				freebigtab(ret);
 			ret = malloc(sizeof(char **) * (line + 1));
+			if (!ret)
+				return (NULL);
 			for (k = 0; k < line; ++k)
 			{
 				ret[k] = malloc(sizeof(char *) * ((tablen(toprint) / line) + (tablen(toprint) % line > k) + 1));
+				if (!ret[k])
+					return (NULL);
 			}
 			ret[k] = 0;
 			int i = 0;
@@ -46,7 +57,6 @@ char	***recup_nb_col(t_files *data, char **toprint, t_recu **recu, t_recu *lst)
 				i++;
 			}
 			i = 0;
-			int newMaxRowSize = 0;
 			int u = 0;
 			int	allpad = 0;
 			while (u < tablen(toprint) / line)
@@ -57,15 +67,20 @@ char	***recup_nb_col(t_files *data, char **toprint, t_recu **recu, t_recu *lst)
 			maxRowSize = allpad;
 			line++;
 		}
+		lst->padding = padding;
 		data->padding = padding;
 	}
 	else
 	{
 		ret = malloc(sizeof(char **) * (line + 1));
+		if (!ret)
+			return (NULL);
 		int k = 0;
 		for (k = 0; k < line; ++k)
 		{
 			ret[k] = malloc(sizeof(char *) * ((tablen(toprint) / line) + (tablen(toprint) % line > k) + 1));
+			if (!ret[k])
+				return (NULL);
 		}
 		ret[k] = 0;
 		int i = 0;
@@ -76,7 +91,7 @@ char	***recup_nb_col(t_files *data, char **toprint, t_recu **recu, t_recu *lst)
 			i++;
 		}
 		data->padding = NULL;
+		lst->padding = NULL;
 	}
-	lst->padding = data->padding;
 	return (ret);
 }

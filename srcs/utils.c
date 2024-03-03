@@ -166,22 +166,77 @@ char	**sort_by_time(int ac, char **av, char *pwd, int mode)
 				tmp1 = ft_strjoin(tmp1, av[i]);
 				char *tmp2 = ft_strjoin(ft_strdup(pwd), "/");
 				tmp2 = ft_strjoin(tmp2, av[j]);
-				if (stat(tmp1, &st) != 0)
+				if (lstat(tmp1, &st) != 0)
 					exit(4);
-				if (stat(tmp2, &st2) != 0)
+				if (lstat(tmp2, &st2) != 0)
 					exit(3);
 				free(tmp1);	
 				free(tmp2);	
 			}
 			else
 			{
-				if (stat(av[i], &st) != 0)
+				if (lstat(av[i], &st) != 0)
 					exit(2);
-				if (stat(av[j], &st2) != 0)
+				if (lstat(av[j], &st2) != 0)
+				{
 					exit(1);
+				}
 			}
 			modif = st.st_mtime;
 			modif2 = st2.st_mtime;
+			if (modif > modif2)
+			{
+				swap = av[i];
+				av[i] = av[j];
+				av[j] = swap;
+			}
+			j++;
+		}
+		i++;
+	}
+	return (av);
+}
+
+char	**sort_by_time_acces(int ac, char **av, char *pwd, int mode)
+{
+	int		i;
+	int		j;
+	char	*swap;
+	struct	stat		st;
+	struct	stat		st2;
+	time_t	modif;
+	time_t	modif2;
+
+	i = 0;
+	while (i != ac)
+	{
+		j = 0;
+		while (j < ac)
+		{
+			if (mode == 1)
+			{
+				char *tmp1 = ft_strjoin(ft_strdup(pwd), "/");
+				tmp1 = ft_strjoin(tmp1, av[i]);
+				char *tmp2 = ft_strjoin(ft_strdup(pwd), "/");
+				tmp2 = ft_strjoin(tmp2, av[j]);
+				if (lstat(tmp1, &st) != 0)
+					exit(4);
+				if (lstat(tmp2, &st2) != 0)
+					exit(3);
+				free(tmp1);	
+				free(tmp2);	
+			}
+			else
+			{
+				if (lstat(av[i], &st) != 0)
+					exit(2);
+				if (lstat(av[j], &st2) != 0)
+				{
+					exit(1);
+				}
+			}
+			modif = st.st_atime;
+			modif2 = st2.st_atime;
 			if (modif > modif2)
 			{
 				swap = av[i];
@@ -202,7 +257,8 @@ int	check_options(char *opt)
 	i = -1;
 	while (opt[++i])
 	{
-		if (opt[i] == '-' || opt[i] == 'l' || opt[i] == 'R' || opt[i] == 'a' || opt[i] == 'r' || opt[i] == 't' || opt[i] == 'g')
+		if (opt[i] == '-' || opt[i] == 'l' || opt[i] == 'R' || opt[i] == 'a' || opt[i] == 'r' || opt[i] == 'o'
+			|| opt[i] == 't' || opt[i] == 'g' || opt[i] == 'f' || opt[i] == 'C' || opt[i] == 'U' || opt[i] == 'u' || opt[i] == 'G')
 			;
 		else
 		{
@@ -228,21 +284,3 @@ int	len_all_tab(char **tab)
 	return (ret);
 }
 
-void	add_maillon(t_recu **head_ref, char *new_data, char **all, char **paths)
-{	
-	t_recu	*new_node = malloc(sizeof(t_recu));
-	t_recu	*last = *head_ref;
-	
-	new_node->pwd = ft_strdup(new_data);
-	new_node->dirs = ft_strduptab(all);
-	new_node->paths = ft_strduptab(paths);
-	new_node->next = NULL;
-	if (*head_ref == NULL)
-	{
-		*head_ref = new_node;
-        	return;
-	}
-	while (last->next != NULL)
-		last = last->next;
-	last->next = new_node;
-}

@@ -4,15 +4,13 @@ int	init_data(char **argv, t_files *data)
 {
 	int	i = 1;
 	int	c = 0;
-	int	k = 0;
-	int	f = 0;
     int o = 0;
+	int	quit = 0;
 	int	n;
 	int	j;
 	char	**toread;
 	char	**options;
-	struct	stat	*tmp;
-    	char    **av = ft_strduptab(argv);
+    char    **av = ft_strduptab(argv);
 
 	while (av[i])
 	{
@@ -21,21 +19,49 @@ int	init_data(char **argv, t_files *data)
 			c++;
 		else if (is_a_file(av[i]))
 			c++;
-		else if (av[i][0] == '-' && !check_options(av[i]))
-            		o++;
-        	else
+		else if (av[i][0] == '-')
 		{
-			ft_putstr("ft_ls: cannot access '");
-			ft_putstr(av[i]);
-			ft_putstr("'");
-			ft_putstr(": No such file or directory\n");
+			if (ft_strcmp("--help", av[i]) == 0)
+			{
+				print_msg_help();
+				freetab(av);
+				return (135);
+			}
+			if (!check_options(av[i]))
+            	o++;
+			else
+			{
+				freetab(av);
+				return (2);
+			}
+		}
+        else
+		{
+			ft_putstr_fd("ft_ls: cannot access '", 2);
+			ft_putstr_fd(av[i], 2);
+			ft_putstr_fd("'", 2);
+			ft_putstr_fd(": No such file or directory\n", 2);
+			free(av[i]);
+			av[i] = ft_strdup("-");
+			quit = 1;
 		}
 		closedir(tmp);
 		i++;
 	}
     if (c == 0)
     {
+		if (quit == 1)
+		{
+			freetab(av);
+			return (2);
+		}
         char **tmp = malloc(sizeof(char *) * (c + o + 10));
+		if (!tmp)
+		{
+			freetab(av);
+			ft_putstr_fd("Error malloc in init_data\n", 2);
+			return (1);
+		}
 		int u = 1;
 		int l = 0;
 		while (av[u])
@@ -48,16 +74,26 @@ int	init_data(char **argv, t_files *data)
 		tmp[l + 1] = ft_strdup(0);
         freetab(av);
         av = ft_strduptab(tmp);
-	freetab(tmp);
-
+		freetab(tmp);
     }
 	toread = malloc(sizeof(char *) * (c + 10));
+	if (!toread)
+	{
+		freetab(av);
+		ft_putstr_fd("Error malloc in init_data\n", 2);
+		return (1);
+	}
 	options = malloc(sizeof(char *) * ((i - c) + 10));
+	if (!options)
+	{
+		freetab(av);
+		ft_putstr_fd("Error malloc in init_data\n", 2);
+		return (1);
+	}
     i = 1;
     if (c == 0)
 	    i = 0;
 	j = 0;
-	f = 0;
 	n = 0;
 	while (av[i])
 	{
@@ -94,6 +130,11 @@ int	init_data(char **argv, t_files *data)
 	data->a = false;
 	data->t = false;
 	data->g = false;
+	data->G = false;
+	data->f = false;
+	data->C = false;
+	data->u = false;
+	data->U = false;
 	while (options[n])
 	{
 		i = 0;
@@ -108,9 +149,42 @@ int	init_data(char **argv, t_files *data)
 			if (options[n][i] == 'a')
 				data->a = true;
 			if (options[n][i] == 't')
+			{
 				data->t = true;
+				data->U = false;
+			}
 			if (options[n][i] == 'g')
+			{
+				data->l = true;
 				data->g = true;
+			}
+			if (options[n][i] == 'G')
+			{
+				data->G = true;
+			}
+			if (options[n][i] == 'o')
+			{
+				data->l = true;
+				data->G = true;
+			}
+			if (options[n][i] == 'C')
+				data->C = true;
+			if (options[n][i] == 'U')
+			{
+				data->t = false;
+				data->r = false;
+				data->U = true;
+			}
+			if (options[n][i] == 'u')
+				data->u = true;
+			if (options[n][i] == 'f')
+			{
+				data->U = true;
+				data->C = false;
+				data->l = false;
+				data->a = true;
+				data->f = true;
+			}
 			i++;
 		}
 		n++;

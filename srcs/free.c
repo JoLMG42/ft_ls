@@ -7,6 +7,11 @@ void	ft_lstdelone(t_recu *lst, void (*del)(void *))
 	free(lst->pwd);
 	freetab(lst->paths);
 	freetab(lst->dirs);
+	if (lst->padding)
+	{
+		free(lst->padding);
+		lst->padding = NULL;
+	}
 	free(lst);
 }
 
@@ -37,6 +42,35 @@ void	freetab(char **tab)
 		i++;
 	}
 	free(tab);
+}
+
+void	freebigtab(char ***tab)
+{
+	if (tab == NULL)
+		return ;
+
+	int i = 0;
+	while (tab[i])
+	{
+		if (tab[i] != NULL)
+		{
+			int j = 0;
+			while (tab[i][j])
+			{
+				if (tab[i][j] != NULL)
+				{
+					free(tab[i][j]);
+					tab[i][j] = NULL;
+				}
+				j++;
+			}
+			free(tab[i]);
+			tab[i] = NULL;
+		}
+		i++;
+	}
+	free(tab);
+	tab = NULL;
 }
 
 void	free_all(t_files *data, t_recu **recu)

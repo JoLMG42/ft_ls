@@ -16,14 +16,17 @@
 #include <grp.h>
 #include <time.h>
 #include <math.h>
-
+#include <string.h>
+#include <sys/acl.h>
+#include <sys/sysmacros.h>
 
 #define COLOR_BLUE			"\x1b[34m"
 #define COLOR_RESET			"\x1b[0m"
 #define COLOR_GREEN			"\x1b[32m"
 #define COLOR_GREEN_BACK	"\x1b[42m"
 #define COLOR_RED			"\x1b[31m"
-
+#define COLOR_CYAN			"\x1b[36m"
+#define COLOR_BROWN			"\x1b[33m"
 typedef	struct s_col
 {
 	int		pading;
@@ -93,5 +96,6 @@ void	recup_args(t_files *data, t_recu **recu);
 void	freebigtab(char ***tab);
 char	**sort_by_time_acces(int ac, char **av, char *pwd, int mode);
 void	print_msg_help(void);
+int     check_months(char **tab, char *actu);
 
 #endif

@@ -12,7 +12,17 @@ char	**add_dir_file(t_files *data, char *dir, t_recu **recu)
 
 	path = NULL;
 	if (!tmp)
+    {
+        if (errno == 13)
+        {
+            ft_putstr_fd("ft_ls: cannot open directory '", 2);
+			ft_putstr_fd(dir, 2);
+			ft_putstr_fd("': ", 2);
+            ft_putstr_fd(strerror(errno), 2);
+			ft_putstr_fd("\n", 2);
+        }
 		return NULL;
+    }
 	int c = 0;
 	while ((dirs = readdir(tmp)))
 		c++;

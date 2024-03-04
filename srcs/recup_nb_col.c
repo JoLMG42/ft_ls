@@ -18,9 +18,9 @@ char	***recup_nb_col(t_files *data, char **toprint, t_recu *lst)
 	else
 		colterm = size.ws_col;
 
-	if (maxRowSize + 3 > colterm)
+	if (maxRowSize + 15 > colterm)
 	{
-		while (maxRowSize + 3 > colterm)
+		while (maxRowSize + 15 > colterm)
 		{
 			if (padding)
 				free(padding);
@@ -49,9 +49,7 @@ char	***recup_nb_col(t_files *data, char **toprint, t_recu *lst)
 			while (toprint[i])
 			{
 				if (padding[i / line] < ft_strlen(toprint[i]) + 2)
-				{
 					padding[i / line] = ft_strlen(toprint[i]) + 2;
-				}
 				ret[i % line][i / line] = ft_strdup(toprint[i]);
 				ret[i % line][i / line + 1] = 0;
 				i++;

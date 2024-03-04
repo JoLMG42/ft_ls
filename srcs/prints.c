@@ -11,15 +11,29 @@ void	big_print(char ***dirs, char *pwd, t_files *data, t_recu *lst)
 		while (tablen(dirs[i]) > 0 && dirs[i][j])
 		{
 			struct	stat	info;
-			char *tmp = ft_strjoin(ft_strdup(pwd), "/");
-			tmp = ft_strjoin(tmp, dirs[i][j]);
-			if (lstat(tmp, &info) && !is_a_file(dirs[i][j]))
-				return ;
-			if (!is_a_file(dirs[i][j]) && S_ISDIR(info.st_mode) && !data->f && data->C)
+			struct	stat	links;
+            
+            char *tmp = ft_strjoin(ft_strdup(pwd), "/");
+            tmp = ft_strjoin(tmp, dirs[i][j]);
+            if (lstat(dirs[i][j], &info) != 0)
+            {
+			    if (lstat(tmp, &info) && !is_a_file(dirs[i][j]))
+				    return ;
+            }
+			if (!data->f && (info.st_mode & S_IFMT) == S_IFBLK)
+				write(STDOUT_FILENO, COLOR_BROWN, ft_strlen(COLOR_BROWN));
+            else if (!data->f && (info.st_mode & S_IFMT) == S_IFCHR)
+				write(STDOUT_FILENO, COLOR_BROWN, ft_strlen(COLOR_BROWN));
+			else if (!is_a_file(tmp) && S_ISDIR(info.st_mode) && !data->f && data->C)
 				write(STDOUT_FILENO, COLOR_BLUE, ft_strlen(COLOR_BLUE));
-			else if (!is_a_file(dirs[i][j]) && S_ISLNK(info.st_mode) && !data->f && data->C)
-				write(STDOUT_FILENO, COLOR_RED, ft_strlen(COLOR_RED));
-			else if (!is_a_file(dirs[i][j]) && info.st_mode & S_IXUSR && !data->f && data->C)
+            else if (S_ISLNK(info.st_mode) && !data->f && data->C)
+            {
+                if (lstat(tmp, &links))
+				    write(STDOUT_FILENO, COLOR_RED, ft_strlen(COLOR_RED));
+                else
+				    write(STDOUT_FILENO, COLOR_CYAN, ft_strlen(COLOR_CYAN));
+            }
+			else if (info.st_mode & S_IXUSR && !data->f && data->C)
 				write(STDOUT_FILENO, COLOR_GREEN, ft_strlen(COLOR_GREEN));
 			ft_putstr(dirs[i][j]);
 			write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
@@ -89,7 +103,9 @@ void	print_list(t_files *data, t_recu **recu)
 			big_print(newdirs, lst->pwd, data, lst);
 			freebigtab(newdirs);
 			lst = lst->next;
-				ft_putstr("\n");
+            if (lst)
+                ft_putstr("\n");
+            ft_putstr("\n");
 		}
 	}
 }

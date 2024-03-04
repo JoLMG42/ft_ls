@@ -9,6 +9,7 @@ void	print_more_infos(t_files *data, t_recu **recu)
 		flag = 1;
 	while (lst)
 	{
+
 		if (!is_a_file(lst->pwd) && flag == 1)
 		{
 			ft_putstr(lst->pwd);
@@ -24,22 +25,44 @@ void	print_more_infos(t_files *data, t_recu **recu)
 		int	sizeD = 0;
 		int	sizeH = 0;
 		int	sizeBloc = 0;
+		int	plus = 0;
+        int sizeMajor = 0;
+        int sizeMinor = 0;
 		while (lst->paths[u])
 		{
 			if (lstat(lst->paths[u], &info) != 0)
 				return ;
+            dev_t device = info.st_rdev;
+            unsigned int minor_number = minor(device);
+            char *s = ft_ltoa(minor_number);
+            if (ft_strlen(s) > sizeMinor)
+                sizeMinor = ft_strlen(s);
+            free(s);
+            unsigned int major_number = major(device);
+            s = ft_ltoa(major_number);
+            if (ft_strlen(s) > sizeMajor)
+                sizeMajor = ft_strlen(s);
+            free(s);
 
+            if (info.st_mode & S_ISVTX)
+                plus = 1;
 			char *tmp = ft_ltoa((long)info.st_nlink);
 			if (sizeL < ft_strlen(tmp))
 				sizeL = ft_strlen(tmp);
 
-
 			struct passwd *pw = getpwuid(info.st_uid);
 			struct group *gr = getgrgid(info.st_gid);
+            if (!pw)
+            {
+                u++;
+                free(tmp);
+                continue;
+            }
+
 			if (sizeU < ft_strlen(pw->pw_name))
-				sizeU = ft_strlen(pw ? pw->pw_name : "unknown");
-			if (sizeG < ft_strlen(pw->pw_name))
-				sizeG = ft_strlen(gr ? gr->gr_name : "unknown");
+			    sizeU = ft_strlen(pw ? pw->pw_name : "unknown");
+			if (sizeG < ft_strlen(gr->gr_name))
+			    sizeG = ft_strlen(gr ? gr->gr_name : "unknown");
 
 			free(tmp);
 			tmp = ft_ltoa((long)info.st_size);
@@ -84,18 +107,34 @@ void	print_more_infos(t_files *data, t_recu **recu)
 				return ;
 
 			// Affichage des droits
-
-			ft_putstr((S_ISLNK(info.st_mode)) ? "l" : (S_ISDIR(info.st_mode)) ? "d" : "-");
+            if ((info.st_mode & S_IFMT) == S_IFBLK)
+                ft_putstr("b");
+            else if ((info.st_mode & S_IFMT) == S_IFCHR)
+                ft_putstr("c");
+            else
+			    ft_putstr((S_ISLNK(info.st_mode)) ? "l" : (S_ISDIR(info.st_mode)) ? "d" : "-");
 			ft_putstr((info.st_mode & S_IRUSR) ? "r" : "-");
 			ft_putstr((info.st_mode & S_IWUSR) ? "w" : "-");
-			ft_putstr((info.st_mode & S_IXUSR) ? "x" : "-");
+            if (info.st_mode & S_ISUID)
+                ft_putstr("s");
+            else
+			    ft_putstr((info.st_mode & S_IXUSR) ? "x" : "-");
 			ft_putstr((info.st_mode & S_IRGRP) ? "r" : "-");
 			ft_putstr((info.st_mode & S_IWGRP) ? "w" : "-");
-			ft_putstr((info.st_mode & S_IXGRP) ? "x" : "-");
+            if (info.st_mode & S_ISUID)
+                ft_putstr("s");
+            else
+			    ft_putstr((info.st_mode & S_IXGRP) ? "x" : "-");
 			ft_putstr((info.st_mode & S_IROTH) ? "r" : "-");
 			ft_putstr((info.st_mode & S_IWOTH) ? "w" : "-");
 			ft_putstr((info.st_mode & S_ISVTX) ? "t" : (info.st_mode & S_IXOTH) ? "x" : "-");
-			
+			if (plus == 1)
+            {
+                if (info.st_mode & S_ISVTX)
+                    ft_putstr("+");
+                else
+                    ft_putstr(" ");
+            }
 
 			// Affichage du nombre de liens
 
@@ -117,8 +156,19 @@ void	print_more_infos(t_files *data, t_recu **recu)
 			struct passwd *pw = getpwuid(info.st_uid);
 			struct group *gr = getgrgid(info.st_gid);
 			
-						
-			if (data->g == false)
+			if (!pw)
+            {
+                int lenU = ft_strlen("???");
+				ft_putstr(" ");
+				lenU = sizeU - lenU;
+				ft_putstr("???");
+				while (lenU && lenU > 0)
+				{
+					ft_putstr(" ");
+					lenU--;
+				}
+            }
+			else if (data->g == false)
 			{
 				int lenU = ft_strlen(pw->pw_name);
 				ft_putstr(" ");
@@ -144,23 +194,68 @@ void	print_more_infos(t_files *data, t_recu **recu)
 				}
 			}
 
+            dev_t device = info.st_rdev;
+            unsigned int minor_number = minor(device);
+            unsigned int major_number = major(device);
+            if ((info.st_mode & S_IFMT) == S_IFBLK || (info.st_mode & S_IFMT) == S_IFCHR)
+            {
+                char *s = ft_ltoa(major_number);
+                int spaces = sizeMajor - ft_strlen(s);
+				ft_putstr(" ");
+                while (spaces && spaces > 0)
+                {
+                    ft_putstr(" ");
+                    spaces--;
+                }
+                ft_putstr(s);
+                ft_putstr(",");
+                ft_putstr(" ");
+                free(s);
+
+                s = ft_ltoa(minor_number);
+                spaces = sizeMinor - ft_strlen(s);
+                while (spaces && spaces > 0)
+                {
+                    ft_putstr(" ");
+                    spaces--;
+                }
+                ft_putstr(s);
+                free(s);
+            }
+			else
+			{
+				char *s = ft_ltoa(sizeMajor);
+				char *s1 = ft_ltoa(sizeMinor);
+				int spaces = ft_strlen(s) + ft_strlen(s1) + 1;
+				while (spaces && spaces > 0 && sizeMajor!= 1 && sizeMinor != 1)
+				{
+					ft_putstr(" ");
+					spaces--;
+				}
+				free(s);
+				free(s1);
+                ft_putstr(" ");
+			}
 
 			// Affichage de la taille
-
-			tmp = ft_ltoa((long)info.st_size);
-			int lenS = ft_strlen(tmp);
-			ft_putstr(" ");
-			lenS = sizeS - lenS;
-			while (lenS)
-			{
+            if ((info.st_mode & S_IFMT) == S_IFBLK || (info.st_mode & S_IFMT) == S_IFCHR)
 				ft_putstr(" ");
-				lenS--;
+			else
+			{
+				tmp = ft_ltoa((long)info.st_size);
+				int lenS = ft_strlen(tmp);
+				ft_putstr(" ");
+				lenS = sizeS - lenS;
+				while (lenS)
+				{
+					ft_putstr(" ");
+					lenS--;
+				}
+				ft_putstr(tmp);
+				free(tmp);
+
+				ft_putstr(" ");
 			}
-			ft_putstr(tmp);
-			free(tmp);
-
-			ft_putstr(" ");
-
 			time_t	modif;
 			if (!data->u)
 				modif = info.st_mtime;
@@ -183,7 +278,7 @@ void	print_more_infos(t_files *data, t_recu **recu)
 			}
 			ft_putstr(timeSplit[2]);
 			ft_putstr(" ");
-			if (annee ==  atoi(timeSplit[4]))
+			if (annee ==  atoi(timeSplit[4]) || actu - modif < 15770000 )
 			{
 				char **hours = ft_split(timeSplit[3], ':');
 				ft_putstr(hours[0]);
@@ -207,21 +302,36 @@ void	print_more_infos(t_files *data, t_recu **recu)
 					symL[symSize] = 0;
 			}
 
+			struct stat links;
+
 			ft_putstr(" ");
-			if (S_ISDIR(info.st_mode) && !data->f && data->C)
+            if (!data->f && (info.st_mode & S_IFMT) == S_IFBLK)
+				write(STDOUT_FILENO, COLOR_BROWN, ft_strlen(COLOR_BROWN));
+            else if (!data->f && (info.st_mode & S_IFMT) == S_IFCHR)
+				write(STDOUT_FILENO, COLOR_BROWN, ft_strlen(COLOR_BROWN));
+			else if (S_ISDIR(info.st_mode) && !data->f && data->C)
 				write(STDOUT_FILENO, COLOR_BLUE, ft_strlen(COLOR_BLUE));
 			else if (S_ISLNK(info.st_mode) && !data->f && data->C)
-				write(STDOUT_FILENO, COLOR_RED, ft_strlen(COLOR_RED));
+            {
+                if (lstat(symL, &links))
+				    write(STDOUT_FILENO, COLOR_RED, ft_strlen(COLOR_RED));
+                else
+				    write(STDOUT_FILENO, COLOR_CYAN, ft_strlen(COLOR_CYAN));
+            }
 			else if (info.st_mode & S_IXUSR && !data->f && data->C)
 				write(STDOUT_FILENO, COLOR_GREEN, ft_strlen(COLOR_GREEN));
 			if (info.st_mode & S_ISVTX && !data->f && data->C)
 				write(STDOUT_FILENO, COLOR_GREEN_BACK, ft_strlen(COLOR_GREEN_BACK));
 			if (ft_strcmp(lst->paths[u], ".") != 0 && ft_strcmp(lst->paths[u], "..") != 0)
 			{
-				if (ft_strcmp(lst->pwd, "./") == 0)
+				char *try = ft_strjoin(ft_strdup("./"), lst->paths[u]);
+				if (ft_strcmp(lst->pwd, "./") == 0 || ft_strcmp(lst->pwd, "../") == 0)
 					ft_putstr(lst->paths[u] + ft_strlen(lst->pwd));
+				else if (is_a_file(lst->pwd))
+					ft_putstr(lst->paths[u]);
 				else
 					ft_putstr(lst->paths[u] + ft_strlen(lst->pwd) + 1);
+				free(try);
 			}
 			else
 				ft_putstr(lst->paths[u]);
@@ -229,7 +339,10 @@ void	print_more_infos(t_files *data, t_recu **recu)
 			{
 				write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
 				ft_putstr(" -> ");
-				write(STDOUT_FILENO, COLOR_RED, ft_strlen(COLOR_RED));
+                if (lstat(symL, &links))
+				    write(STDOUT_FILENO, COLOR_RED, ft_strlen(COLOR_RED));
+                else
+				    write(STDOUT_FILENO, COLOR_BLUE, ft_strlen(COLOR_BLUE));
 				ft_putstr(symL);
 			}
 			write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));

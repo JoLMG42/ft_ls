@@ -284,3 +284,39 @@ int	len_all_tab(char **tab)
 	return (ret);
 }
 
+int check_months(char **tab, char *actu)
+{
+
+    char **months = malloc(sizeof(char *) * 13);
+    months[0] = "Jan";
+    months[1] = "Feb";
+    months[2] = "Mar";
+    months[3] = "Apr";
+    months[4] = "May";
+    months[5] = "Jun";
+    months[6] = "Jul";
+    months[7] = "Aug";
+    months[8] = "Sep";
+    months[9] = "Oct";
+    months[10] = "Nov";
+    months[11] = "Dec";
+    months[12] = 0;
+    (void)tab;
+    char **split = ft_split(actu, ' ');
+    int idx1 = 999;
+    int idx2 = 999;
+    int i = 0;
+    while (months[i])
+    {
+        if (ft_strcmp(months[i], split[1]) == 0)
+            idx1 = i;
+        if (ft_strcmp(months[i], tab[1]) == 0)
+            idx2 = i;
+        i++;
+    }
+    freetab(split);
+    free(months);
+    if (abs(idx1 - idx2) > 6)
+        return (0);
+    return (1);
+}

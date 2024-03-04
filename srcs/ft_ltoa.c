@@ -1,6 +1,6 @@
 #include "ft_ls.h"
 
-static char	*ft_fill(char *s, int *tab, int i, int n)
+static char	*ft_fill(char *s, long *tab, int i, long n)
 {
 	int	j;
 
@@ -34,7 +34,7 @@ char	*ft_ltoa(long n)
 	int		i;
 	long	nb;
 	char	*res;
-	int		tab[255];
+	long		tab[255];
 
 	i = 0;
 	nb = n;

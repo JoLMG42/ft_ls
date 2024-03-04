@@ -37,10 +37,21 @@ int	init_data(char **argv, t_files *data)
 		}
         else
 		{
-			ft_putstr_fd("ft_ls: cannot access '", 2);
-			ft_putstr_fd(av[i], 2);
-			ft_putstr_fd("'", 2);
-			ft_putstr_fd(": No such file or directory\n", 2);
+            if (errno == 13)
+            {
+			    ft_putstr_fd("ft_ls: cannot open directory '", 2);
+			    ft_putstr_fd(av[i], 2);
+			    ft_putstr_fd("': ", 2);
+                ft_putstr_fd(strerror(errno), 2);
+			    ft_putstr_fd("\n", 2);
+            }
+            else
+            {
+			    ft_putstr_fd("ft_ls: cannot access '", 2);
+			    ft_putstr_fd(av[i], 2);
+			    ft_putstr_fd("'", 2);
+			    ft_putstr_fd(": No such file or directory\n", 2);
+            }
 			free(av[i]);
 			av[i] = ft_strdup("-");
 			quit = 1;

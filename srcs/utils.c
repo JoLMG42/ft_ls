@@ -105,9 +105,10 @@ void mergeSort(char **arr, int l, int r) {
     }
 }
 
-char **ft_swap(int ac, char **av) {
+char **ft_swap(int ac, char **av)
+{
     mergeSort(av, 0, ac - 1);
-    return av;
+	return (av);
 }
 
 void	ft_putchar_fd(char c, int fd)

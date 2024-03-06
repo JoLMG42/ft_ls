@@ -87,7 +87,7 @@ char	*fill_recu(t_files *data, t_recu **recu, char *dir)
         else
         {
             if (data->l)
-                print_more_infos(data, &lst);
+                print_more_infos2(data, &lst, newdirs);
             else
 	            big_print(newdirs, lst->pwd, data, lst);
             ft_putstr("\n");

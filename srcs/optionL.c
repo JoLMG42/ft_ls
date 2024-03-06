@@ -4,9 +4,9 @@ void	print_more_infos(t_files *data, t_recu **recu)
 {
 	t_recu *lst = *recu;
 	
-	int flag = 0;
-	if (lst->next)
-		flag = 1;
+	// int flag = 0;
+	// if (lst->next)
+	// 	flag = 1;
 	while (lst)
 	{
 

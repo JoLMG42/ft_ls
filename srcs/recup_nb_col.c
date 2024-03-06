@@ -17,14 +17,20 @@ char	***recup_nb_col(t_files *data, char **toprint, t_recu *lst)
 		free(padding);
 		return NULL;
 	}
+	if (data->l && !data->R)
+		maxRowSize = -1;
     if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &size) == -1)
     {
         perror("Error: ioctl\n");
         return NULL;
     }
     else
-        colterm = size.ws_col;
-   if(!maxRowSize || maxRowSize > colterm)
+	{
+    	colterm = size.ws_col;
+	}
+
+
+	if (!maxRowSize || maxRowSize > colterm)
     {
         int min = 1;
         int max = allLen;

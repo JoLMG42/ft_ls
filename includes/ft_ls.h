@@ -19,6 +19,7 @@
 #include <string.h>
 #include <sys/acl.h>
 #include <sys/sysmacros.h>
+#include <ctype.h>
 
 #define COLOR_BLUE			"\x1b[34m"
 #define COLOR_RESET			"\x1b[0m"
@@ -27,11 +28,8 @@
 #define COLOR_RED			"\x1b[31m"
 #define COLOR_CYAN			"\x1b[36m"
 #define COLOR_BROWN			"\x1b[33m"
-typedef	struct s_col
-{
-	int		pading;
-	struct s_col	*next;
-}	t_col;
+#define COLOR_RED_BACK	"\x1b[41m"
+#define COLOR_YELLOW_BACK	"\033[1;32m"
 
 typedef	struct s_recu
 {
@@ -58,6 +56,11 @@ typedef struct s_files
 	bool	C;
 	bool	U;
 	bool	u;
+	bool	S;
+	bool	E;
+
+    int		flagQuote;
+    unsigned long		sizeO;
 }	t_files;
 
 int		ft_strlen(char *str);
@@ -97,5 +100,7 @@ void	freebigtab(char ***tab);
 char	**sort_by_time_acces(int ac, char **av, char *pwd, int mode);
 void	print_msg_help(void);
 void	print_more_infos2(t_files *data, t_recu **recu, char ***tab);
+char	*ft_strnstr(const char *big, const char *little, size_t len);
+int check_digit(char *str);
 
 #endif

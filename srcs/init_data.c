@@ -11,7 +11,7 @@ int	init_data(char **argv, t_files *data)
 	char	**toread;
 	char	**options;
     char    **av = ft_strduptab(argv);
-
+    data->sizeO = 0;
 	while (av[i])
 	{
 		DIR *tmp = opendir(av[i]);
@@ -28,7 +28,20 @@ int	init_data(char **argv, t_files *data)
 				return (135);
 			}
 			if (!check_options(av[i]))
+			{
+				if (ft_strnstr(av[i], "S", ft_strlen(av[i])))
+				{
+					if (!av[i + 1] || !check_digit(av[i + 1]) || ft_strlen(av[i + 1]) < 1)
+					{
+						ft_putstr_fd("ft_ls: please provide a size with -S\n", 2);
+						freetab(av);
+						return (2);
+					}
+					data->sizeO = atol(av[i + 1]);
+					i++;
+				}
             	o++;
+			}
 			else
 			{
 				freetab(av);
@@ -131,8 +144,6 @@ int	init_data(char **argv, t_files *data)
 	toread[j] = 0;
 
 	data->toread = toread;
-	data->toread = ft_swap(j, data->toread);
-	j = 0;
 	n = 0;
 
 	data->R = false;
@@ -146,6 +157,8 @@ int	init_data(char **argv, t_files *data)
 	data->C = false;
 	data->u = false;
 	data->U = false;
+	data->S = false;
+    data->flagQuote = 0;
 	while (options[n])
 	{
 		i = 0;
@@ -196,10 +209,16 @@ int	init_data(char **argv, t_files *data)
 				data->a = true;
 				data->f = true;
 			}
+			if (options[n][i] == 'S')
+				data->S = true;
+			if (options[n][i] == 'E')
+				data->E = true;
 			i++;
 		}
 		n++;
 	}
+    if (!data->U)
+	    data->toread = ft_swap(j, data->toread);
 	freetab(options);
 	freetab(av);
 	return (0);

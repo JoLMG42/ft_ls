@@ -22,6 +22,11 @@ void	big_print(char ***dirs, char *pwd, t_files *data, t_recu *lst)
 				    return ;
                 }
             }
+            if (is_a_file(tmp) && data->S)
+            {
+				write(STDOUT_FILENO, COLOR_YELLOW_BACK, ft_strlen(COLOR_YELLOW_BACK));
+				write(STDOUT_FILENO, COLOR_RED_BACK, ft_strlen(COLOR_RED_BACK));
+            }
 			if (!data->f && (info.st_mode & S_IFMT) == S_IFBLK)
 				write(STDOUT_FILENO, COLOR_BROWN, ft_strlen(COLOR_BROWN));
             else if (!data->f && (info.st_mode & S_IFMT) == S_IFCHR)
@@ -37,11 +42,40 @@ void	big_print(char ***dirs, char *pwd, t_files *data, t_recu *lst)
             }
 			else if (info.st_mode & S_IXUSR && !data->f && data->C)
 				write(STDOUT_FILENO, COLOR_GREEN, ft_strlen(COLOR_GREEN));
-			ft_putstr(dirs[i][j]);
+            if (data->flagQuote)
+            {
+                if (ft_strnstr(dirs[i][j], "[{}&!=+()*", ft_strlen(dirs[i][j])))
+                {
+                    ft_putchar_fd('\'', 1);
+			        ft_putstr(dirs[i][j]);
+			        write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
+                    ft_putchar_fd('\'', 1);
+                }
+                else
+                {
+			        ft_putstr(" ");
+			        ft_putstr(dirs[i][j]);
+			        write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
+			        ft_putstr(" ");
+                }
+    	        ft_putstr(" ");
+            }
+            else
+            {
+    	        ft_putstr(dirs[i][j]);
+		        write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
+			    ft_putstr("  ");
+            }
 			write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
 			if (lst->padding)
 			{
-				int space = lst->padding[j] - ft_strlen(dirs[i][j]) - 2;
+                int space = 0;
+                if (data->flagQuote)
+                {
+				    space = lst->padding[j] - ft_strlen(dirs[i][j]) - 3;
+                }
+                else
+				    space = lst->padding[j] - ft_strlen(dirs[i][j]) - 2;
 				while (space > 0 && space < 1000)
 				{
 					ft_putchar_fd(' ', 1);
@@ -49,7 +83,6 @@ void	big_print(char ***dirs, char *pwd, t_files *data, t_recu *lst)
 				}
 			}
 			j++;
-			ft_putstr("  ");
 			free(tmp);
 		}
 		i++;

@@ -39,6 +39,7 @@ char	*fill_recu(t_files *data, t_recu **recu, char *dir)
             // printf("%s\n", foradd[i]);
 			i++;
 		}
+
 		free(path);
 		path = NULL;
 	}
@@ -103,8 +104,10 @@ char	*fill_recu(t_files *data, t_recu **recu, char *dir)
 
 void	recup_args(t_files *data, t_recu **recu)
 {
-	int	i = 0;
 
+	int	i = 0;
+    if (data->r == true)
+		data->toread = reverse_tab(data->toread, tablen(data->toread));
 	while (data->toread[i])
 	{
 		if (is_a_file(data->toread[i]))

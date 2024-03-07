@@ -158,138 +158,179 @@ char	**ft_strduptab(char **tab)
 	return (res);
 }
 
-char	**reverse_tab(char **tab, int len)
-{
-	int	start = 0;
-	int	end = len - 1;
+char **reverse_tab(char **tab, int len) {
+    mergeSort(tab, 0, len - 1);
 
-	while (start < end)
-	{
-		char *tmp = tab[start];
-		tab[start] = tab[end];
-		tab[end] = tmp;
-		start++;
-		end--;
-	}
-	return (tab);
+    // Inversion du tableau trié
+    int start = 0;
+    int end = len - 1;
+
+    while (start < end) {
+        char *tmp = tab[start];
+        tab[start] = tab[end];
+        tab[end] = tmp;
+        start++;
+        end--;
+    }
+    return tab;
 }
 
-char	**sort_by_time(int ac, char **av, char *pwd, int mode)
-{
-	int		i;
-	int		j;
-	char	*swap;
-	struct	stat		st;
-	struct	stat		st2;
-	time_t	modif;
-	time_t	modif2;
+void mergeTime(char **arr, int l, int m, int r, char *pwd, int mode) {
+    int n1 = m - l + 1;
+    int n2 = r - m;
 
-	i = 0;
-	while (i != ac)
-	{
-		j = 0;
-		while (j < ac)
-		{
-			if (mode == 1)
-			{
-				char *tmp1 = ft_strjoin(ft_strdup(pwd), "/");
-				tmp1 = ft_strjoin(tmp1, av[i]);
-				char *tmp2 = ft_strjoin(ft_strdup(pwd), "/");
-				tmp2 = ft_strjoin(tmp2, av[j]);
-				if (lstat(tmp1, &st) != 0)
-                {
-                    free(tmp1);
-                    free(tmp2);
-					return (av);
-                }
-				if (lstat(tmp2, &st2) != 0)
-                {
-                    free(tmp1);
-                    free(tmp2);
-					return (av);
-                }
-				free(tmp1);	
-				free(tmp2);	
-			}
-			else
-			{
-				if (lstat(av[i], &st) != 0)
-                {
-                    return (av);
-                }
-				if (lstat(av[j], &st2) != 0)
-				{
-					return (av);
-				}
-			}
-			modif = st.st_mtime;
-			modif2 = st2.st_mtime;
-			if (modif > modif2)
-			{
-				swap = av[i];
-				av[i] = av[j];
-				av[j] = swap;
-			}
-			j++;
-		}
-		i++;
-	}
-	return (av);
+    char **L = malloc(n1 * sizeof(char *));
+    char **R = malloc(n2 * sizeof(char *));
+
+    for (int i = 0; i < n1; i++)
+        L[i] = arr[l + i];
+    for (int j = 0; j < n2; j++)
+        R[j] = arr[m + 1 + j];
+
+    int i = 0, j = 0, k = l;
+    while (i < n1 && j < n2) {
+        struct stat st1, st2;
+        struct timespec modif1, modif2;
+        if (mode == 1) {
+            char *tmp1 = ft_strjoin(ft_strdup(pwd), "/");
+            tmp1 = ft_strjoin(tmp1, L[i]);
+            char *tmp2 = ft_strjoin(ft_strdup(pwd), "/");
+            tmp2 = ft_strjoin(tmp2, R[j]);
+            if (lstat(tmp1, &st1) != 0 || lstat(tmp2, &st2) != 0) {
+                free(tmp1);
+                free(tmp2);
+                free(L);
+                free(R);
+                return;
+            }
+            free(tmp1);
+            free(tmp2);
+        } else {
+            if (lstat(L[i], &st1) != 0 || lstat(R[j], &st2) != 0) {
+                free(L);
+                free(R);
+                return;
+            }
+        }
+        modif1 = st1.st_mtim;
+        modif2 = st2.st_mtim;
+        if (modif1.tv_sec > modif2.tv_sec || (modif1.tv_sec == modif2.tv_sec && modif1.tv_nsec > modif2.tv_nsec)) {
+            arr[k] = L[i];
+            i++;
+        } else {
+            arr[k] = R[j];
+            j++;
+        }
+        k++;
+    }
+
+    while (i < n1) {
+        arr[k] = L[i];
+        i++;
+        k++;
+    }
+
+    while (j < n2) {
+        arr[k] = R[j];
+        j++;
+        k++;
+    }
+
+    free(L);
+    free(R);
 }
 
-char	**sort_by_time_acces(int ac, char **av, char *pwd, int mode)
-{
-	int		i;
-	int		j;
-	char	*swap;
-	struct	stat		st;
-	struct	stat		st2;
-	time_t	modif;
-	time_t	modif2;
+void mergeSortTime(char **arr, int l, int r, char *pwd, int mode) {
+    if (l < r) {
+        int m = l + (r - l) / 2;
+        mergeSortTime(arr, l, m, pwd, mode);
+        mergeSortTime(arr, m + 1, r, pwd, mode);
+        mergeTime(arr, l, m, r, pwd, mode);
+    }
+}
 
-	i = 0;
-	while (i != ac)
-	{
-		j = 0;
-		while (j < ac)
-		{
-			if (mode == 1)
-			{
-				char *tmp1 = ft_strjoin(ft_strdup(pwd), "/");
-				tmp1 = ft_strjoin(tmp1, av[i]);
-				char *tmp2 = ft_strjoin(ft_strdup(pwd), "/");
-				tmp2 = ft_strjoin(tmp2, av[j]);
-				if (lstat(tmp1, &st) != 0)
-					exit(4);
-				if (lstat(tmp2, &st2) != 0)
-					exit(3);
-				free(tmp1);	
-				free(tmp2);	
-			}
-			else
-			{
-				if (lstat(av[i], &st) != 0)
-					exit(2);
-				if (lstat(av[j], &st2) != 0)
-				{
-                    printf("BBBBBBBBBBBBBBB\n");
+char **sort_by_time(int ac, char **av, char *pwd, int mode) {
+    mergeSortTime(av, 0, ac - 1, pwd, mode);
+    return av;
+}
 
-					exit(1);
-				}
-			}
-			modif = st.st_atime;
-			modif2 = st2.st_atime;
-			if (modif > modif2)
-			{
-				swap = av[i];
-				av[i] = av[j];
-				av[j] = swap;
-			}
-			j++;
-		}
-		i++;
-	}
-	return (av);
+void mergeTimeAccess(char **arr, int l, int m, int r, char *pwd, int mode) {
+    int n1 = m - l + 1;
+    int n2 = r - m;
+
+    char **L = malloc(n1 * sizeof(char *));
+    char **R = malloc(n2 * sizeof(char *));
+
+    for (int i = 0; i < n1; i++)
+        L[i] = arr[l + i];
+    for (int j = 0; j < n2; j++)
+        R[j] = arr[m + 1 + j];
+
+    int i = 0, j = 0, k = l;
+    while (i < n1 && j < n2) {
+        struct stat st1, st2;
+        struct timespec modif1, modif2;
+        if (mode == 1) {
+            char *tmp1 = ft_strjoin(ft_strdup(pwd), "/");
+            tmp1 = ft_strjoin(tmp1, L[i]);
+            char *tmp2 = ft_strjoin(ft_strdup(pwd), "/");
+            tmp2 = ft_strjoin(tmp2, R[j]);
+            if (lstat(tmp1, &st1) != 0 || lstat(tmp2, &st2) != 0) {
+                free(tmp1);
+                free(tmp2);
+                free(L);
+                free(R);
+                return;
+            }
+            free(tmp1);
+            free(tmp2);
+        } else {
+            if (lstat(L[i], &st1) != 0 || lstat(R[j], &st2) != 0) {
+                free(L);
+                free(R);
+                return;
+            }
+        }
+        modif1 = st1.st_atim;
+        modif2 = st2.st_atim;
+        if (modif1.tv_sec > modif2.tv_sec || (modif1.tv_sec == modif2.tv_sec && modif1.tv_nsec > modif2.tv_nsec)) {
+            arr[k] = L[i];
+            i++;
+        } else {
+            arr[k] = R[j];
+            j++;
+        }
+        k++;
+    }
+
+    while (i < n1) {
+        arr[k] = L[i];
+        i++;
+        k++;
+    }
+
+    while (j < n2) {
+        arr[k] = R[j];
+        j++;
+        k++;
+    }
+
+    free(L);
+    free(R);
+}
+
+void mergeSortTimeAccess(char **arr, int l, int r, char *pwd, int mode) {
+    if (l < r) {
+        int m = l + (r - l) / 2;
+        mergeSortTimeAccess(arr, l, m, pwd, mode);
+        mergeSortTimeAccess(arr, m + 1, r, pwd, mode);
+        mergeTimeAccess(arr, l, m, r, pwd, mode);
+    }
+}
+
+char **sort_by_time_acces(int ac, char **av, char *pwd, int mode) {
+    mergeSortTimeAccess(av, 0, ac - 1, pwd, mode);
+    return av;
 }
 
 int	check_options(char *opt)
@@ -299,8 +340,9 @@ int	check_options(char *opt)
 	i = -1;
 	while (opt[++i])
 	{
-		if (opt[i] == '-' || opt[i] == 'l' || opt[i] == 'R' || opt[i] == 'a' || opt[i] == 'r' || opt[i] == 'o'
-			|| opt[i] == 't' || opt[i] == 'g' || opt[i] == 'f' || opt[i] == 'C' || opt[i] == 'U' || opt[i] == 'u' || opt[i] == 'G')
+		if (opt[i] == '-' || opt[i] == 'l' || opt[i] == 'R' || opt[i] == 'a' || opt[i] == 'r' || opt[i] == 'o' || opt[i] == 'S'
+			|| opt[i] == 't' || opt[i] == 'g' || opt[i] == 'f' || opt[i] == 'C' || opt[i] == 'U' || opt[i] == 'u' || opt[i] == 'G'
+            || opt[i] == 'E')
 			;
 		else
 		{
@@ -324,4 +366,43 @@ int	len_all_tab(char **tab)
 		i++;
 	}
 	return (ret);
+}
+
+char	*ft_strnstr(const char *big, const char *little, size_t len)
+{
+	size_t	i;
+	size_t	j;
+
+
+	if (*little == '\0')
+		return ((char *)big);
+	i = 0;
+	while (big[i])
+	{
+		j = 0;
+		while (big[i + j] == little[j] && (i + j) < len)
+		{
+            return ((char *)big);
+
+			if (big[i + j] == '\0' && little[j] == '\0')
+				return ((char *)&big[i]);
+			j++;
+		}
+		if (little[j] == '\0')
+			return ((char *)&big[i]);
+		i++;
+	}
+	return (0);
+}
+
+int check_digit(char *str)
+{
+    int i = 0;
+    while (str[i])
+    {
+        if (!isdigit(str[i]))
+            return (0);
+        i++;
+    }
+    return (1);
 }

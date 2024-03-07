@@ -46,6 +46,9 @@ char	**add_dir_file(t_files *data, char *dir, t_recu **recu)
         int link = 0;
         struct	stat	info;
         char *forchecklink = ft_strjoin(ft_strjoin(ft_strdup(dir), "/"), dirs2->d_name);
+        if (path)
+            free(path);
+        path = NULL;
         if (lstat(forchecklink, &info) == 0)
         {
                 if (S_ISLNK(info.st_mode))
@@ -54,22 +57,31 @@ char	**add_dir_file(t_files *data, char *dir, t_recu **recu)
 		if (ft_strcmp(dirs2->d_name, ".") != 0 && ft_strcmp(dirs2->d_name, "..") != 0 && link == 0)
 		{
 			path = ft_strjoin(path, dir);
-			if (ft_strcmp(dir, "./") != 0 && ft_strcmp(dir, "../") != 0)
+			// printf("path = %s      dir = %s\n", path, dirs2->d_name);
+			if (ft_strcmp(dir, "./") != 0 && ft_strcmp(dir, "../") != 0 && ft_strcmp(path, "/") != 0)
 				path = ft_strjoin(path, "/");
 			path = ft_strjoin(path, dirs2->d_name);
+			// printf("path222222 = %s      dir = %s\n", path, dirs2->d_name);
+
 
 			if (dirs2->d_name[0] == '.' && data->a == false)
 				;
 			else
 			{
+                if (is_a_file(forchecklink) && data->S)
+                {
+                    int lenS = (unsigned long)info.st_size;
+                    if ((unsigned long)lenS < data->sizeO)
+                    {
+                        free(forchecklink);
+                        continue ;
+                    }
+                }
 				all[i] = ft_strdup(path);
 				foradd[j] = ft_strdup(dirs2->d_name);
-
 				j++;
 				i++;
 			}
-			free(path);
-			path = NULL;
 		}
         else if (link == 1)
         {
@@ -90,6 +102,11 @@ char	**add_dir_file(t_files *data, char *dir, t_recu **recu)
 		}
         free(forchecklink);
 	}
+
+    if (path)
+    {
+        free(path);
+    }
 	closedir(tmp2);
 	all[i] = 0;
 	foradd[j] = 0;
@@ -126,22 +143,30 @@ char	**add_dir_file(t_files *data, char *dir, t_recu **recu)
 	t_recu *lst = add_maillon(recu, dir, foradd, all);
     if (lst)
     {
-        ft_putstr(lst->pwd);
-        ft_putstr(":\n");
-
 	    char ***newdirs = recup_nb_col(data, lst->dirs, lst);
-        if (!newdirs)
-            ft_putstr("total 0\n");
+        if (!newdirs && data->S)
+            ;
+		else if (tablen(newdirs[0]) == 2 && data->S && data->a)
+		{
+			freebigtab(newdirs);
+		}
         else
         {
-            if (data->l)
-                print_more_infos2(data, &lst, newdirs);
+            ft_putstr(lst->pwd);
+            ft_putstr(":\n");
+            if (!newdirs)
+                ft_putstr("total 0\n");
             else
-	            big_print(newdirs, lst->pwd, data, lst);
-            ft_putstr("\n");
-            ft_putstr("\n");
-            freebigtab(newdirs);
-        }
+            {
+                if (data->l)
+                    print_more_infos2(data, &lst, newdirs);
+                else
+                    big_print(newdirs, lst->pwd, data, lst);
+                ft_putstr("\n");
+                ft_putstr("\n");
+                freebigtab(newdirs);
+            }
+       }
     }
 	freetab(foradd);
 	i = 0;
@@ -167,11 +192,12 @@ char	**add_dir_file(t_files *data, char *dir, t_recu **recu)
         // }
 		if (ft_strcmp(all[i], ".") != 0 && ft_strcmp(all[i], "..") != 0 && link == 0)
 		{
-			path = ft_strjoin(path, all[i]);
+			char *here = NULL;
+            here = ft_strjoin(here, all[i]);
 			if (!is_a_file(all[i]))
-				add_dir_file(data, path, recu);
-			free(path);
-			path = NULL;
+				add_dir_file(data, here, recu);
+			free(here);
+			here = NULL;
 		}
         link = 0;
 		i++;
@@ -187,6 +213,8 @@ void	recursive(t_files *data, t_recu **recu)
 {
 	if (data->t)
 	 	data->toread = sort_by_time(tablen(data->toread), data->toread, NULL, 0);
+    if (data->r)
+	 	data->toread = reverse_tab(data->toread, tablen(data->toread));
 	int k = 0;
 	while (data->toread[k])
 	{

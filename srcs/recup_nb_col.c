@@ -4,11 +4,25 @@ char	***recup_nb_col(t_files *data, char **toprint, t_recu *lst)
 {
 	int     line = 1;
 	char	***ret = NULL;
-    int     allLen = tablen(toprint);
-	int     maxRowSize = (allLen -1) * 2 + len_all_tab(toprint);
 	int     colterm = 80;
+    int     allLen = tablen(toprint);
     int     *padding = malloc(sizeof(int) * allLen);
 	struct	winsize size;
+	int     maxRowSize = (allLen -1) * 2 + len_all_tab(toprint);
+    
+    data->flagQuote = 0;
+    int n = 0;
+    while (toprint[n])
+    {
+        if (ft_strnstr(toprint[n], "[{}&!=+()*", ft_strlen(toprint[n])))
+        {
+            data->flagQuote = 1;
+            
+            maxRowSize = (allLen -1) * 3 + len_all_tab(toprint);
+            break ;
+        }
+        n++;
+    }
 	(void)data;
 	(void)lst;
 
@@ -21,8 +35,8 @@ char	***recup_nb_col(t_files *data, char **toprint, t_recu *lst)
 		maxRowSize = -1;
     if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &size) == -1)
     {
-        perror("Error: ioctl\n");
-        return NULL;
+        // perror("Error: ioctl\n");
+        // return NULL;
     }
     else
 	{
@@ -30,13 +44,12 @@ char	***recup_nb_col(t_files *data, char **toprint, t_recu *lst)
 	}
 
 
-	if (!maxRowSize || maxRowSize > colterm)
+	if (!maxRowSize || maxRowSize >= colterm)
     {
         int min = 1;
         int max = allLen;
         while (min + 1 != max)
         {
-
             int predict = (min + max) / 2;
             for (int u = 0; u < allLen; u++)
                 padding[u] = 0;
@@ -47,7 +60,10 @@ char	***recup_nb_col(t_files *data, char **toprint, t_recu *lst)
                     padding[i / predict] = ft_strlen(toprint[i]);
                 i++;
             }
-            maxRowSize = ((allLen / predict) + (allLen % predict > 1) -1) * 2;
+            if (data->flagQuote)
+                maxRowSize = ((allLen / predict) + (allLen % predict > 1)) * 3;
+            else
+                maxRowSize = ((allLen / predict) + (allLen % predict > 1)) * 2;
             int k = 0;
             while (k < (allLen / predict) + (allLen % predict > 1))
             {
@@ -82,8 +98,16 @@ char	***recup_nb_col(t_files *data, char **toprint, t_recu *lst)
 	{
 		int x = i % line;
 		int y = i / line;
-		if (padding[y] < ft_strlen(toprint[i]) + 2)
-			padding[y] = ft_strlen(toprint[i]) + 2;
+        if (data->flagQuote)
+        {
+		    if (padding[y] < ft_strlen(toprint[i]) + 3)
+			    padding[y] = ft_strlen(toprint[i]) + 3;
+        }
+        else
+        {
+            if (padding[y] < ft_strlen(toprint[i]) + 2)
+			    padding[y] = ft_strlen(toprint[i]) + 2;
+        }
 		ret[x][y] = ft_strdup(toprint[i]);
 		ret[x][y + 1] = 0;
 		i++;

@@ -360,11 +360,27 @@ void	print_more_infos2(t_files *data, t_recu **recu, char ***tab)
 				    write(STDOUT_FILENO, COLOR_BLUE, ft_strlen(COLOR_BLUE));
 				ft_putstr(symL);
 			}
+            if (S_ISLNK(info.st_mode) && !data->f && !data->C)
+			{
+				ft_putstr(" -> ");
+				ft_putstr(symL);
+			}
 			write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
-			ft_putstr("\n");
+		    ft_putstr("\n");
 			j++;
 			freetab(timeSplit);
             free(tmpALL);
+            if (data->E)
+            {
+                char input[100];
+    fgets(input, sizeof(input), stdin);
+
+    // Suppression du caractère de nouvelle ligne s'il est présent
+    size_t len = strlen(input);
+    if (len > 0 && input[len - 1] == '\n') {
+        input[len - 1] = '\0'; // Remplace le '\n' par '\0'
+    }
+            }
 		}
         i++;
         }

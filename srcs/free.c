@@ -40,7 +40,9 @@ void	freetab(char **tab)
 
 	while (tab[i])
 	{
-		free(tab[i]);
+		if (tab[i])
+			free(tab[i]);
+		tab[i] = NULL;
 		i++;
 	}
 	free(tab);

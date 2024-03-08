@@ -40,6 +40,17 @@ int	init_data(char **argv, t_files *data)
 					data->sizeO = atol(av[i + 1]);
 					i++;
 				}
+				if (ft_strnstr(av[i], "D", ft_strlen(av[i])))
+				{
+					if (!av[i + 1] || !check_digit(av[i + 1]) || ft_strlen(av[i + 1]) < 1)
+					{
+						ft_putstr_fd("ft_ls: please provide a power of dig with -D\n", 2);
+						freetab(av);
+						return (2);
+					}
+					data->powerDig = atoi(av[i + 1]);
+					i++;
+				}
             	o++;
 			}
 			else
@@ -159,7 +170,9 @@ int	init_data(char **argv, t_files *data)
 	data->U = false;
 	data->S = false;
 	data->E = false;
+	data->D = false;
     data->flagQuote = 0;
+    data->powerDig = 999999;
 	while (options[n])
 	{
 		i = 0;
@@ -214,6 +227,8 @@ int	init_data(char **argv, t_files *data)
 				data->S = true;
 			if (options[n][i] == 'E')
 				data->E = true;
+			if (options[n][i] == 'D')
+				data->D = true;
 			i++;
 		}
 		n++;
@@ -222,5 +237,11 @@ int	init_data(char **argv, t_files *data)
 	    data->toread = ft_swap(j, data->toread);
 	freetab(options);
 	freetab(av);
+	if (data->D && !data->R)
+	{
+		free_all(data, NULL);
+		ft_putstr_fd("ft_ls: please provide the -R option if you want to use -D\n", 2);
+		return (2);
+	}
 	return (0);
 }

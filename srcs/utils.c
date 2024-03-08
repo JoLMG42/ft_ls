@@ -342,7 +342,7 @@ int	check_options(char *opt)
 	{
 		if (opt[i] == '-' || opt[i] == 'l' || opt[i] == 'R' || opt[i] == 'a' || opt[i] == 'r' || opt[i] == 'o' || opt[i] == 'S'
 			|| opt[i] == 't' || opt[i] == 'g' || opt[i] == 'f' || opt[i] == 'C' || opt[i] == 'U' || opt[i] == 'u' || opt[i] == 'G'
-            || opt[i] == 'E')
+            || opt[i] == 'E' || opt[i] == 'D')
 			;
 		else
 		{

@@ -143,6 +143,10 @@ void	recup_args(t_files *data, t_recu **recu)
 		}
 		fill_recu(data, recu, data->toread[i]);
 		i++;
+		if (data->toread[i] && data->E)
+		{
+			getchar();
+		}
 	}
 }
 

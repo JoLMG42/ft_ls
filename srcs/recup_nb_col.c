@@ -17,14 +17,11 @@ char	***recup_nb_col(t_files *data, char **toprint, t_recu *lst)
         if (ft_strnstr(toprint[n], "[{}&!=+()*", ft_strlen(toprint[n])))
         {
             data->flagQuote = 1;
-            
             maxRowSize = (allLen -1) * 3 + len_all_tab(toprint);
             break ;
         }
         n++;
     }
-	(void)data;
-	(void)lst;
 
 	if (allLen == 0)
 	{
@@ -90,7 +87,10 @@ char	***recup_nb_col(t_files *data, char **toprint, t_recu *lst)
 	{
 		ret[k] = malloc(sizeof(char *) * ((allLen / line) + (allLen % line > k) + 1));
 		if (!ret[k])
+		{
+			freebigtab(ret);
 			return (NULL);
+		}
 	}
 	ret[k] = 0;
 	int i = 0;

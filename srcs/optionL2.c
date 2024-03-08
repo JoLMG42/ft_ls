@@ -370,11 +370,8 @@ void	print_more_infos2(t_files *data, t_recu **recu, char ***tab)
 			j++;
 			freetab(timeSplit);
             free(tmpALL);
-            if (data->E)
-            {
-
-			}
 		}
         i++;
         }
+
 }

@@ -1,6 +1,6 @@
 #include "ft_ls.h"
 
-char	**add_dir_file(t_files *data, char *dir, t_recu **recu)
+char	**add_dir_file(t_files *data, char *dir, t_recu **recu, int temp)
 {
 	char		*path;
 	struct	dirent	*dirs;
@@ -106,6 +106,7 @@ char	**add_dir_file(t_files *data, char *dir, t_recu **recu)
     if (path)
     {
         free(path);
+		path = NULL;
     }
 	closedir(tmp2);
 	all[i] = 0;
@@ -146,7 +147,7 @@ char	**add_dir_file(t_files *data, char *dir, t_recu **recu)
 	    char ***newdirs = recup_nb_col(data, lst->dirs, lst);
         if (!newdirs && data->S)
             ;
-		else if (tablen(newdirs[0]) == 2 && data->S && data->a)
+		else if (newdirs && tablen(newdirs[0]) == 2 && data->S && data->a)
 		{
 			freebigtab(newdirs);
 		}
@@ -172,6 +173,8 @@ char	**add_dir_file(t_files *data, char *dir, t_recu **recu)
 	i = 0;
     int link = 0;
     ft_lstclear(recu, &free);
+	if (temp)
+	{
 	while (all[i])
 	{
         // char *forchecklink = ft_strjoin(ft_strjoin(ft_strdup(dir), "/"), all[i]);
@@ -195,7 +198,7 @@ char	**add_dir_file(t_files *data, char *dir, t_recu **recu)
 			char *here = NULL;
             here = ft_strjoin(here, all[i]);
 			if (!is_a_file(all[i]))
-				add_dir_file(data, here, recu);
+				add_dir_file(data, here, recu, temp -1);
 			free(here);
 			here = NULL;
 		}
@@ -203,7 +206,9 @@ char	**add_dir_file(t_files *data, char *dir, t_recu **recu)
 		i++;
         // free(forchecklink);
 	}
+	}
 	freetab(all);
+	all = NULL;
 	return (NULL);
 }
 
@@ -218,6 +223,7 @@ void	recursive(t_files *data, t_recu **recu)
 	int k = 0;
 	while (data->toread[k])
 	{
+		int temp = data->powerDig;
 		if (is_a_file(data->toread[k]))
 		{
 			char **all;
@@ -243,8 +249,9 @@ void	recursive(t_files *data, t_recu **recu)
 	        big_print(newdirs, lst->pwd, data, lst);
 			freetab(all);
 			freetab(foradd);
+			freebigtab(newdirs);
 		}
-		add_dir_file(data, data->toread[k], recu);
+		add_dir_file(data, data->toread[k], recu, temp);
 		k++;
 	}
 }

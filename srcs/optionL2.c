@@ -372,15 +372,8 @@ void	print_more_infos2(t_files *data, t_recu **recu, char ***tab)
             free(tmpALL);
             if (data->E)
             {
-                char input[100];
-    fgets(input, sizeof(input), stdin);
 
-    // Suppression du caractère de nouvelle ligne s'il est présent
-    size_t len = strlen(input);
-    if (len > 0 && input[len - 1] == '\n') {
-        input[len - 1] = '\0'; // Remplace le '\n' par '\0'
-    }
-            }
+			}
 		}
         i++;
         }

@@ -158,6 +158,7 @@ int	init_data(char **argv, t_files *data)
 	data->u = false;
 	data->U = false;
 	data->S = false;
+	data->E = false;
     data->flagQuote = 0;
 	while (options[n])
 	{

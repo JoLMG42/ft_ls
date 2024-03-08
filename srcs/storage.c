@@ -26,23 +26,36 @@ char	*fill_recu(t_files *data, t_recu **recu, char *dir)
 	int i = 0;
 	while ((dirs2 = readdir(tmp2)))
 	{
+
+		if (path)
+			free(path);
+		path = NULL;
 		path = ft_strjoin(path, dir);
 		if (path[ft_strlen(path)-1] != '/')
 			path = ft_strjoin(path, "/");
 		path = ft_strjoin(path, dirs2->d_name);
+		struct	stat	info;
+        lstat(path, &info);
 		if (dirs2->d_name[0] == '.' && data->a == false)
 			;
 		else
 		{
+			    if (is_a_file(path) && data->S)
+                {
+                    int lenS = (unsigned long)info.st_size;
+                    if ((unsigned long)lenS < data->sizeO)
+                    {
+                        continue ;
+                    }
+                }
 			all[i] = ft_strdup(path);
 			foradd[i] = ft_strdup(dirs2->d_name);
             // printf("%s\n", foradd[i]);
 			i++;
 		}
-
-		free(path);
-		path = NULL;
 	}
+	if (path)
+		free(path);
 	closedir(tmp2);
 	all[i] = 0;
 	foradd[i] = 0;

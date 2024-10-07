@@ -11,71 +11,71 @@ void	big_print(char ***dirs, char *pwd, t_files *data, t_recu *lst)
 		{
 			struct	stat	info;
 			struct	stat	links;
-            
-            char *tmp = ft_strjoin(ft_strdup(pwd), "/");
-            tmp = ft_strjoin(tmp, dirs[i][j]);
-            if (lstat(dirs[i][j], &info) != 0)
-            {
-			    if (lstat(tmp, &info) && !is_a_file(dirs[i][j]))
-                {
-                    free(tmp);
-				    return ;
-                }
-            }
-            if (is_a_file(tmp) && data->S)
-            {
+			
+			char *tmp = ft_strjoin(ft_strdup(pwd), "/");
+			tmp = ft_strjoin(tmp, dirs[i][j]);
+			if (lstat(dirs[i][j], &info) != 0)
+			{
+				if (lstat(tmp, &info) && !is_a_file(dirs[i][j]))
+				{
+					free(tmp);
+					return ;
+				}
+			}
+			if (is_a_file(tmp) && data->S)
+			{
 				write(STDOUT_FILENO, COLOR_YELLOW_BACK, ft_strlen(COLOR_YELLOW_BACK));
 				write(STDOUT_FILENO, COLOR_RED_BACK, ft_strlen(COLOR_RED_BACK));
-            }
+			}
 			if (!data->f && (info.st_mode & S_IFMT) == S_IFBLK)
 				write(STDOUT_FILENO, COLOR_BROWN, ft_strlen(COLOR_BROWN));
-            else if (!data->f && (info.st_mode & S_IFMT) == S_IFCHR)
+			else if (!data->f && (info.st_mode & S_IFMT) == S_IFCHR)
 				write(STDOUT_FILENO, COLOR_BROWN, ft_strlen(COLOR_BROWN));
 			else if (!is_a_file(tmp) && S_ISDIR(info.st_mode) && !data->f && data->C)
 				write(STDOUT_FILENO, COLOR_BLUE, ft_strlen(COLOR_BLUE));
-            else if (S_ISLNK(info.st_mode) && !data->f && data->C)
-            {
-                if (lstat(tmp, &links))
-				    write(STDOUT_FILENO, COLOR_RED, ft_strlen(COLOR_RED));
-                else
-				    write(STDOUT_FILENO, COLOR_CYAN, ft_strlen(COLOR_CYAN));
-            }
+			else if (S_ISLNK(info.st_mode) && !data->f && data->C)
+			{
+				if (lstat(tmp, &links))
+					write(STDOUT_FILENO, COLOR_RED, ft_strlen(COLOR_RED));
+				else
+					write(STDOUT_FILENO, COLOR_CYAN, ft_strlen(COLOR_CYAN));
+			}
 			else if (info.st_mode & S_IXUSR && !data->f && data->C)
 				write(STDOUT_FILENO, COLOR_GREEN, ft_strlen(COLOR_GREEN));
-            if (data->flagQuote)
-            {
-                if (ft_strnstr(dirs[i][j], "[{}&!=+()*", ft_strlen(dirs[i][j])))
-                {
-                    ft_putchar_fd('\'', 1);
-			        ft_putstr(dirs[i][j]);
-			        write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
-                    ft_putchar_fd('\'', 1);
-                }
-                else
-                {
-			        ft_putstr(" ");
-			        ft_putstr(dirs[i][j]);
-			        write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
-			        ft_putstr(" ");
-                }
-    	        ft_putstr(" ");
-            }
-            else
-            {
-    	        ft_putstr(dirs[i][j]);
-		        write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
-			    ft_putstr("  ");
-            }
+			if (data->flagQuote)
+			{
+				if (ft_strnstr(dirs[i][j], "[{}&!=+()*", ft_strlen(dirs[i][j])))
+				{
+					ft_putchar_fd('\'', 1);
+					ft_putstr(dirs[i][j]);
+					write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
+					ft_putchar_fd('\'', 1);
+				}
+				else
+				{
+					ft_putstr(" ");
+					ft_putstr(dirs[i][j]);
+					write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
+					ft_putstr(" ");
+				}
+				ft_putstr(" ");
+			}
+			else
+			{
+				ft_putstr(dirs[i][j]);
+				write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
+				ft_putstr("  ");
+			}
 			write(STDOUT_FILENO, COLOR_RESET, ft_strlen(COLOR_RESET));
 			if (lst->padding)
 			{
-                int space = 0;
-                if (data->flagQuote)
-                {
-				    space = lst->padding[j] - ft_strlen(dirs[i][j]) - 3;
-                }
-                else
-				    space = lst->padding[j] - ft_strlen(dirs[i][j]) - 2;
+				int space = 0;
+				if (data->flagQuote)
+				{
+					space = lst->padding[j] - ft_strlen(dirs[i][j]) - 3;
+				}
+				else
+					space = lst->padding[j] - ft_strlen(dirs[i][j]) - 2;
 				while (space > 0 && space < 1000)
 				{
 					ft_putchar_fd(' ', 1);
@@ -138,19 +138,19 @@ void	print_list(t_files *data, t_recu **recu)
 			big_print(newdirs, lst->pwd, data, lst);
 			freebigtab(newdirs);
 			lst = lst->next;
-            if (lst)
-                ft_putstr("\n");
-            ft_putstr("\n");
+			if (lst)
+				ft_putstr("\n");
+			ft_putstr("\n");
 		}
 	}
 }
 
 void	print_msg_help(void)
 {
-	char	mandato[] = "\nUsage: ls [OPTION]... [FILE]...\nList information about the FILEs (the current directory by default).\nSort entries alphabetically\n\nMandatory part arguments:\n -a    do not ignore entries starting with .\n -l    use a long listing format\n \
-					\r -r    reverse order while sorting\n -R    list subdirectories recursively\n -t    sort by time, newest first\n";
-	char	bonus[] = "\nBonus part arguments:\n -g    like -l, but do not list owner\n -G    with a long format, do not show group informations\n -f    do not sort, enable -aU, disable -l -C\n -U    do not sort; list entries in directory order\n -u    with -lt: sort by, and show, access time;\n \
-				        \r         with -l: show access time and sort by name;\n         otherwise: sort by access time, newest first\n -C    show with colors\n -o    show long format without group informations\n";
+	char	mandato[] = "\nUsage: ls [OPTION]... [FILE]...\nList information about the FILEs (the current directory by default).\nSort entries alphabetically\n\nMandatory part arguments:\n -a	do not ignore entries starting with .\n -l	use a long listing format\n \
+					\r -r	reverse order while sorting\n -R	list subdirectories recursively\n -t	sort by time, newest first\n";
+	char	bonus[] = "\nBonus part arguments:\n -g	like -l, but do not list owner\n -G	with a long format, do not show group informations\n -f	do not sort, enable -aU, disable -l -C\n -U	do not sort; list entries in directory order\n -u	with -lt: sort by, and show, access time;\n \
+						\r		 with -l: show access time and sort by name;\n		 otherwise: sort by access time, newest first\n -C	show with colors\n -o	show long format without group informations\n";
 	ft_putstr(mandato);
 	ft_putstr(bonus);
 }

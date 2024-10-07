@@ -1,6 +1,6 @@
 NAME	=	ft_ls
 
-SRCS_FILES	=	../main.c exec_ls_no_args.c free.c ft_ltoa.c ft_split.c ft_strdup.c ft_strjoin.c init_data.c optionL.c optionR.c prints.c recup_nb_col.c storage.c utils.c optionL2.c
+SRCS_FILES	=	../main.c exec_ls_no_args.c free.c utils/ft_ltoa.c utils/ft_split.c utils/ft_strdup.c utils/ft_strjoin.c init_data.c optionL.c optionR.c prints.c recup_nb_col.c storage.c utils/utils.c optionL2.c
 
 INC_FILES	=	ft_ls.h
 
@@ -35,6 +35,7 @@ re	:	fclean all
 
 ./objs/%.o :	./srcs/%.c $(INCS)
 		mkdir -p objs
+		mkdir -p objs/utils
 		$(CC) $(FLAGS) -MMD -I ./includes/ -o $@ -c $<
 
 .PHONY : all re clean fclean

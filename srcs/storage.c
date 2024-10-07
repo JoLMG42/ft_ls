@@ -35,22 +35,21 @@ char	*fill_recu(t_files *data, t_recu **recu, char *dir)
 			path = ft_strjoin(path, "/");
 		path = ft_strjoin(path, dirs2->d_name);
 		struct	stat	info;
-        lstat(path, &info);
+		lstat(path, &info);
 		if (dirs2->d_name[0] == '.' && data->a == false)
 			;
 		else
 		{
-			    if (is_a_file(path) && data->S)
-                {
-                    int lenS = (unsigned long)info.st_size;
-                    if ((unsigned long)lenS < data->sizeO)
-                    {
-                        continue ;
-                    }
-                }
+				if (is_a_file(path) && data->S)
+				{
+					int lenS = (unsigned long)info.st_size;
+					if ((unsigned long)lenS < data->sizeO)
+					{
+						continue ;
+					}
+				}
 			all[i] = ft_strdup(path);
 			foradd[i] = ft_strdup(dirs2->d_name);
-            // printf("%s\n", foradd[i]);
 			i++;
 		}
 	}
@@ -90,25 +89,25 @@ char	*fill_recu(t_files *data, t_recu **recu, char *dir)
 		foradd = ft_swap(i, foradd);
 	}
 	add_maillon(recu, dir, foradd, all);
-    t_recu *lst = add_maillon(recu, dir, foradd, all);
-    if (lst)
-    {
-        ft_putstr(lst->pwd);
-        ft_putstr(":\n");
-	    char ***newdirs = recup_nb_col(data, lst->dirs, lst);
-        if (!newdirs)
-            ft_putstr("total 0\n");
-        else
-        {
-            if (data->l)
-                print_more_infos2(data, &lst, newdirs);
-            else
-	            big_print(newdirs, lst->pwd, data, lst);
-            ft_putstr("\n");
-            ft_putstr("\n");
-            freebigtab(newdirs);
-        }
-    }
+	t_recu *lst = add_maillon(recu, dir, foradd, all);
+	if (lst)
+	{
+		ft_putstr(lst->pwd);
+		ft_putstr(":\n");
+		char ***newdirs = recup_nb_col(data, lst->dirs, lst);
+		if (!newdirs)
+			ft_putstr("total 0\n");
+		else
+		{
+			if (data->l)
+				print_more_infos2(data, &lst, newdirs);
+			else
+				big_print(newdirs, lst->pwd, data, lst);
+			ft_putstr("\n");
+			ft_putstr("\n");
+			freebigtab(newdirs);
+		}
+	}
 	freetab(foradd);
 	freetab(all);
 	return (NULL);
@@ -119,7 +118,7 @@ void	recup_args(t_files *data, t_recu **recu)
 {
 
 	int	i = 0;
-    if (data->r == true)
+	if (data->r == true)
 		data->toread = reverse_tab(data->toread, tablen(data->toread));
 	while (data->toread[i])
 	{
@@ -165,10 +164,10 @@ t_recu  *add_maillon(t_recu **head_ref, char *new_data, char **all, char **paths
 	if (*head_ref == NULL)
 	{
 		*head_ref = new_node;
-        return new_node;
+		return new_node;
 	}
 	while (last->next != NULL)
 		last = last->next;
 	last->next = new_node;
-    return (new_node);
+	return (new_node);
 }

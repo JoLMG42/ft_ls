@@ -60,9 +60,9 @@ typedef struct s_files
 	bool	E;
 	bool	D;
 
-    int		flagQuote;
-    unsigned long		sizeO;
-    int		powerDig;
+	int		flagQuote;
+	unsigned long		sizeO;
+	int		powerDig;
 }	t_files;
 
 int		ft_strlen(char *str);
